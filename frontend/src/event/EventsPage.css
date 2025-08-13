@@ -59,7 +59,7 @@
   font-size: 32px;
   cursor: pointer;
   position: fixed;
-  bottom: 95px;
+  bottom: 100px;
   right: 50px;
 }
 
@@ -67,7 +67,6 @@
 .addButton .plus {
   position: absolute;
   font-size: 32px;
-  margin-bottom: 7%;
   transition: opacity 0.3s ease;
 }
 

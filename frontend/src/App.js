@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SidebarPage from "./SidebarPage";
 
-import EventsPage from "./pages/EventsPage";
-import EventDetailPage from "./pages/EventDetailPage";
-import AddEventPage from "./pages/AddEventPage";
-import ArchivePage from "./pages/ArchivePage";
+import EventsPage from "./event/EventsPage";
+import EventDetailPage from "./event/EventDetailPage";
+import AddEventPage from "./event/AddEventPage";
+import ArchivePage from "./event/ArchivePage";
 
 function Dashboard() { return <h1>Dashboard Page</h1>; }
 function Records() { return <h1>Records Page</h1>; }
