@@ -1,0 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+.layout {
+  display: flex;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Sidebar styling */
+.sidebar {
+  position: fixed; /* Float on the left */
+  top: 15px; /* Margin from the top */
+  left: 15px; /* Margin from the left */
+  bottom: 15px;
+  width: 10.5rem;
+  background-color: #F5F5F5;
+  color: rgb(0, 0, 0);
+  padding: 20px;
+  border-radius: 12px; /* Rounded corners */
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease-in-out; /* Smooth slide */
+}
+
+.sidebar .logo {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sidebar ul li {
+  margin-bottom: 8px;
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: rgb(0, 0, 0);
+  display: block;
+  padding: 1px 20px;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+}
+
+.sidebar ul li a:hover {
+  background-color: #d0d0d0;
+}
+
+.sidebar ul li.active a {
+  background-color: #FFFFFF;
+  border-left: 5px solid #F4B826;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+.menu-item.active {
+  background-color: #ffffff;
+  border-left: 5px solid #F4B826;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.menu-item {
+  cursor: pointer;
+  padding: 10px 20px;
+  border-radius: 6px;
+}
+
+/* Content area */
+.content {
+  margin-left: 220px; /* Make space for sidebar */
+  padding: 20px;
+  flex-grow: 1;
+}
+
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: #2c3e50;
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  padding: 10px;
+  border-radius: 8px;
+  z-index: 1001;
+  cursor: pointer;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .sidebar {
+    transform: translateX(-120%);
+    width: 12rem;
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .content {
+    margin-left: 0;
+    padding-top: 60px; /* space for toggle button */
+  }
+}
+
+.menu-icon {
+  font-size: 1.2rem; /* adjust icon size */
+  margin-right: 5px;
+}
+
+.submenu {
+  list-style: none;
+  padding-left: 2rem;
+  margin-top: 5px;
+  margin-left: 20px;
+}
+
+.submenu li {
+  margin-bottom: 6px;
+}
+
+.submenu li a {
+  margin-top: 10px;
+  text-decoration: none;
+  color: rgb(0, 0, 0);
+  display: block;
+  padding: 1px 2px;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+  font-weight: 500;
+}
+
+.submenu li a:hover {
+  background-color: #d0d0d0;
+}
+
+.submenu li.active a {
+  background-color: #FFFFFF;
+  border-left: 5px solid #F4B826;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.yellow-dot {
+  display: inline-block;
+  width: 8px;             /* fixed width */
+  height: 8px;            /* fixed height */
+  border-radius: 50%;
+  background-color: #F4B826;
+  margin-right: 6px;      /* space between dot and text */
+  vertical-align: middle;
+  /* Make it always occupy space */
+  visibility: visible;
+  transition: visibility 0.3s ease;
+}
+
+.yellow-dot.hidden {
+  visibility: hidden;     /* invisible but space reserved */
+}
+
+.submenu-wrapper {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+}
+
+.submenu-wrapper.open {
+  max-height: 200px; /* adjust based on submenu height */
+  opacity: 1;
+}
+
+.submenu {
+  padding-left: 20px;
+  margin: 0;
+  list-style: none;
+}

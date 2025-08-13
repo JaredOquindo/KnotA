@@ -1,0 +1,201 @@
+.container {
+  width: auto;
+  height: auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.header .back-link {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 16px;
+}
+
+.event-main {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.event-image-box {
+  flex-shrink: 0;
+  width: 240px;
+  height: 240px;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.event-banner {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+.no-image {
+  color: #777;
+  font-size: 14px;
+}
+
+.event-info-box {
+  flex: 1;
+  position: relative;
+  padding-right: 130px; /* room for buttons */
+}
+
+.event-buttons {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.primary-btn, .danger-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.primary-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.primary-btn:disabled {
+  background-color: #a3cdfd;
+  cursor: not-allowed;
+}
+
+.danger-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.danger-btn:disabled {
+  background-color: #f5a5ab;
+  cursor: not-allowed;
+}
+
+.event-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background-color: #F4B826;
+  border-radius: 16px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.dates span {
+  font-size: 10px;
+  color: #555;
+}
+
+.event-title {
+  margin: 4px 0 8px 0;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.event-description {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.participants-section {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 16px;
+  background-color: #fafafa;
+}
+
+.participants-section h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.participants-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.participants-table th,
+.participants-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.participants-table th {
+  background-color: #f4f4f4;
+}
+
+.event-main.portrait-layout {
+  display: flex;
+  flex-direction: column;  /* stack elements vertically */
+  gap: 16px;               /* spacing between stacked elements */
+}
+
+.portrait-layout .event-image-box,
+.portrait-layout .event-info-box {
+  width: 100%;             /* full width for both image and info */
+}
+
+/* Make banner image fit nicely on mobile */
+.event-image-box img.event-banner {
+  width: 100%;             /* full width of container */
+  height: auto;            /* maintain aspect ratio */
+  object-fit: contain;     /* ensure the entire image fits */
+}
+
+.event-buttons {
+  position: absolute;
+  top: 50px;
+  right: 50px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* Optional: stack buttons vertically on smaller screens */
+@media (max-width: 768px) {
+  .event-buttons {
+    position: absolute;
+    top: 90px;
+    right: 50px;
+    gap: 6px;
+  }
+}
