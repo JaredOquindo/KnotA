@@ -190,3 +190,24 @@
   object-fit: cover;
   border-radius: 12px;
 }
+.right-column input[type="email"],
+.right-column input[name="contactPhone"] {
+  width: 100%;             /* full width of the right column */
+  padding: 0.75rem 1rem;   /* same padding as other inputs */
+  border-radius: 8px;      /* match the input rounding */
+  border: 1px solid #ddd;  /* same border color */
+  font-size: 1rem;         /* same font size */
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  margin-top: 0.3rem;      /* reduced spacing from key terms / each other */
+  box-sizing: border-box;
+  height: 45px;
+}
+
+/* Focus effect */
+.right-column input[type="email"]:focus,
+.right-column input[name="contactPhone"]:focus {
+  border-color: #f0b429;
+  box-shadow: 0 0 0 2px rgba(240, 180, 41, 0.2);
+}
+  

@@ -1,10 +1,17 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SidebarPage from "./SidebarPage";
 
+// Event imports
 import EventsPage from "./event/EventsPage";
 import EventDetailPage from "./event/EventDetailPage";
 import AddEventPage from "./event/AddEventPage";
 import ArchivePage from "./event/ArchivePage";
+
+// Campaign imports
+import CampaignPage from "./campaign/CampaignPage";
+import AddCampaignPage from "./campaign/AddCampaignPage";
+import CampaignDetailPage from "./campaign/CampaignDetailPage";
+import ArchiveCampaignPage from "./campaign/ArchiveCampaignPage"; // <-- new
 
 function Dashboard() { return <h1>Dashboard Page</h1>; }
 function Records() { return <h1>Records Page</h1>; }
@@ -17,20 +24,27 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<SidebarPage />}>
-          {/* Default to EventsPage at /events */}
+
+          {/* Event routes */}
           <Route path="events" element={<EventsPage />} />
           <Route path="events/archive" element={<ArchivePage />} />
           <Route path="events/:id" element={<EventDetailPage />} />
+          <Route path="add" element={<AddEventPage />} />
+
+          {/* Campaign routes */}
+          <Route path="campaigns" element={<CampaignPage />} />
+          <Route path="campaigns/archive" element={<ArchiveCampaignPage />} /> {/* new */}
+          <Route path="campaigns/:id" element={<CampaignDetailPage />} />
+          <Route path="add-campaign" element={<AddCampaignPage />} />
 
           {/* Other main routes */}
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="records" element={<Records />} />
           <Route path="donation" element={<Donation />} />
-          <Route path="add" element={<AddEventPage />} />
           <Route path="news" element={<News />} />
           <Route path="survey" element={<Survey />} />
 
-          {/* Optional: Redirect root "/" to /events */}
+          {/* Default index route */}
           <Route index element={<EventsPage />} />
         </Route>
       </Routes>

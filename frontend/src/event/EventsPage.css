@@ -82,7 +82,7 @@
 
 /* Hover state: expand width, round corners */
 .addButton:hover {
-  width: 140px;
+  width: 190px;
   border-radius: 12px;
   font-size: 18px;
   background-color: #F4B826;
