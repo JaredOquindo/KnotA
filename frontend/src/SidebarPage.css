@@ -180,3 +180,14 @@
   margin: 0;
   list-style: none;
 }
+.sidebar-logo {
+  position: absolute;
+  justify-content: center;
+  bottom: 0;
+  margin-left: 20px;
+}
+
+.sidebar-logo img {
+  max-width: 70%;
+  height: auto;
+}

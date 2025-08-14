@@ -5,47 +5,45 @@ import { RiDashboardFill, RiSurveyFill } from "react-icons/ri";
 import { IoPeopleCircleOutline, IoCalendar } from "react-icons/io5";
 import { GiReceiveMoney } from "react-icons/gi";
 import { FaNewspaper, FaBars } from "react-icons/fa";
+import TopBar from "./TopBar";
 
 export default function SidebarPage() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isViewingClosedEvent, setIsViewingClosedEvent] = useState(false);
   const [eventsSubmenuOpen, setEventsSubmenuOpen] = useState(false);
   const [campaignsSubmenuOpen, setCampaignsSubmenuOpen] = useState(false);
+  const [surveySubmenuOpen, setSurveySubmenuOpen] = useState(false);
   const [loadingFinished, setLoadingFinished] = useState(true);
+  const [isViewingClosedEvent, setIsViewingClosedEvent] = useState(false);
   const [isViewingClosedCampaign, setIsViewingClosedCampaign] = useState(false);
+  const [isViewingClosedSurvey, setIsViewingClosedSurvey] = useState(false);
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleSidebar = () => setIsOpen(!isOpen);
 
-  // Keep Events submenu open if path starts with /events OR is /add
+  // --- submenu open checks ---
   useEffect(() => {
-    if (
-      location.pathname.startsWith("/events") ||
-      location.pathname === "/add"
-    ) {
-      setEventsSubmenuOpen(true);
-    } else {
-      setEventsSubmenuOpen(false);
-    }
+    setEventsSubmenuOpen(
+      location.pathname.startsWith("/events") || location.pathname === "/add"
+    );
   }, [location]);
 
-  // Keep Campaigns submenu open if path starts with /campaigns OR is /add-campaign
   useEffect(() => {
-    if (
+    setCampaignsSubmenuOpen(
       location.pathname.startsWith("/campaigns") ||
-      location.pathname === "/add-campaign"
-    ) {
-      setCampaignsSubmenuOpen(true);
-    } else {
-      setCampaignsSubmenuOpen(false);
-    }
+        location.pathname === "/add-campaign"
+    );
   }, [location]);
 
-  // Check if viewing a closed event
+  useEffect(() => {
+    setSurveySubmenuOpen(
+      location.pathname.startsWith("/survey") ||
+        location.pathname === "/add-survey"
+    );
+  }, [location]);
+
+  // --- closed event/campaign/survey checks ---
   useEffect(() => {
     const match = location.pathname.match(/^\/events\/([^/]+)$/);
     if (!match) {
@@ -53,91 +51,94 @@ export default function SidebarPage() {
       setLoadingFinished(true);
       return;
     }
-
     let intervalId;
     setLoadingFinished(false);
-
     const fetchEvent = () => {
       fetch(`http://localhost:5000/events/${match[1]}`)
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch event");
-          return res.json();
-        })
-        .then((event) => {
-          setIsViewingClosedEvent(event.isClosed === true);
-        })
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((event) => setIsViewingClosedEvent(event.isClosed === true))
         .catch(() => setIsViewingClosedEvent(false))
         .finally(() => setLoadingFinished(true));
     };
-
     fetchEvent();
     intervalId = setInterval(fetchEvent, 20000);
-
     return () => clearInterval(intervalId);
   }, [location]);
 
-  // Check if viewing a closed campaign
   useEffect(() => {
     const match = location.pathname.match(/^\/campaigns\/([^/]+)$/);
     if (!match) {
       setIsViewingClosedCampaign(false);
       return;
     }
-
     fetch(`http://localhost:5000/campaigns/${match[1]}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch campaign");
-        return res.json();
-      })
-      .then((campaign) => {
-        setIsViewingClosedCampaign(campaign.isClosed === true);
-      })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((campaign) =>
+        setIsViewingClosedCampaign(campaign.isClosed === true)
+      )
       .catch(() => setIsViewingClosedCampaign(false));
   }, [location]);
 
-  // Highlight Open Events submenu item
+  useEffect(() => {
+    const match = location.pathname.match(/^\/survey\/([^/]+)$/);
+    if (!match) {
+      setIsViewingClosedSurvey(false);
+      return;
+    }
+    fetch(`http://localhost:5000/surveys/${match[1]}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((survey) => setIsViewingClosedSurvey(survey.isClosed === true))
+      .catch(() => setIsViewingClosedSurvey(false));
+  }, [location]);
+
+  // --- yellow dot active state ---
   const showYellowDotOnOpenEvents =
     loadingFinished &&
-    (
-      location.pathname === "/events" ||
+    (location.pathname === "/events" ||
       location.pathname === "/add" ||
       (location.pathname.startsWith("/events") &&
-       !location.pathname.startsWith("/events/archive") &&
-       !isViewingClosedEvent)
-    );
+        !location.pathname.startsWith("/events/archive") &&
+        !isViewingClosedEvent));
 
-  // Highlight Archive Events submenu
   const showYellowDotOnArchiveEvents =
     loadingFinished &&
     (location.pathname.startsWith("/events/archive") || isViewingClosedEvent);
 
-  // Highlight Active Campaign submenu item
   const showYellowDotOnActiveCampaigns =
     location.pathname === "/campaigns" ||
     location.pathname === "/add-campaign" ||
-    (location.pathname.startsWith("/campaigns") && !location.pathname.startsWith("/campaigns/archive") && !isViewingClosedCampaign);
+    (location.pathname.startsWith("/campaigns") &&
+      !location.pathname.startsWith("/campaigns/archive") &&
+      !isViewingClosedCampaign);
 
-  // Highlight Archive Campaign submenu
   const showYellowDotOnArchiveCampaigns =
-    location.pathname.startsWith("/campaigns/archive") || isViewingClosedCampaign;
+    location.pathname.startsWith("/campaigns/archive") ||
+    isViewingClosedCampaign;
+
+  const showYellowDotOnActiveSurveys =
+    location.pathname === "/survey" ||
+    location.pathname === "/add-survey" ||
+    (location.pathname.startsWith("/survey") &&
+      !location.pathname.startsWith("/survey/archive") &&
+      !isViewingClosedSurvey);
+
+  const showYellowDotOnArchiveSurveys =
+    location.pathname.startsWith("/survey/archive") || isViewingClosedSurvey;
 
   const handleMenuClick = (path) => {
     setIsOpen(false);
-    if (path === "events") {
-      setEventsSubmenuOpen((prev) => !prev);
-    } else if (path === "campaigns") {
-      setCampaignsSubmenuOpen((prev) => !prev);
-    } else {
-      navigate(`/${path}`);
-    }
+    if (path === "events") setEventsSubmenuOpen((prev) => !prev);
+    else if (path === "campaigns") setCampaignsSubmenuOpen((prev) => !prev);
+    else if (path === "survey") setSurveySubmenuOpen((prev) => !prev);
+    else navigate(`/${path}`);
   };
 
   return (
     <div className="layout">
+      {/* Sidebar */}
       <button className="menu-toggle" onClick={toggleSidebar}>
         <FaBars />
       </button>
-
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
         <h2 className="logo">My App</h2>
         <nav>
@@ -166,10 +167,12 @@ export default function SidebarPage() {
               </Link>
             </li>
 
-            {/* Campaigns with submenu */}
+            {/* Campaigns */}
             <li>
               <div
-                className={`menu-item ${campaignsSubmenuOpen ? "active" : ""}`}
+                className={`menu-item ${
+                  campaignsSubmenuOpen ? "active" : ""
+                }`}
                 onClick={() => handleMenuClick("campaigns")}
                 style={{ cursor: "pointer", padding: "1px 20px" }}
               >
@@ -178,13 +181,18 @@ export default function SidebarPage() {
                 </span>
                 <span className="menu-text">Campaigns</span>
               </div>
-
-              <div className={`submenu-wrapper ${campaignsSubmenuOpen ? "open" : ""}`}>
+              <div
+                className={`submenu-wrapper ${
+                  campaignsSubmenuOpen ? "open" : ""
+                }`}
+              >
                 <ul className="submenu">
                   <li onClick={() => setIsOpen(false)}>
                     <Link
                       to="/campaigns"
-                      className={showYellowDotOnActiveCampaigns ? "active-submenu" : ""}
+                      className={
+                        showYellowDotOnActiveCampaigns ? "active-submenu" : ""
+                      }
                     >
                       <span
                         className={`yellow-dot ${
@@ -197,7 +205,9 @@ export default function SidebarPage() {
                   <li onClick={() => setIsOpen(false)}>
                     <Link
                       to="/campaigns/archive"
-                      className={showYellowDotOnArchiveCampaigns ? "active-submenu" : ""}
+                      className={
+                        showYellowDotOnArchiveCampaigns ? "active-submenu" : ""
+                      }
                     >
                       <span
                         className={`yellow-dot ${
@@ -223,13 +233,18 @@ export default function SidebarPage() {
                 </span>
                 <span className="menu-text">Events</span>
               </div>
-
-              <div className={`submenu-wrapper ${eventsSubmenuOpen ? "open" : ""}`}>
+              <div
+                className={`submenu-wrapper ${
+                  eventsSubmenuOpen ? "open" : ""
+                }`}
+              >
                 <ul className="submenu">
                   <li onClick={() => setIsOpen(false)}>
                     <Link
                       to="/events"
-                      className={showYellowDotOnOpenEvents ? "active-submenu" : ""}
+                      className={
+                        showYellowDotOnOpenEvents ? "active-submenu" : ""
+                      }
                     >
                       <span
                         className={`yellow-dot ${
@@ -242,11 +257,65 @@ export default function SidebarPage() {
                   <li onClick={() => setIsOpen(false)}>
                     <Link
                       to="/events/archive"
-                      className={showYellowDotOnArchiveEvents ? "active-submenu" : ""}
+                      className={
+                        showYellowDotOnArchiveEvents ? "active-submenu" : ""
+                      }
                     >
                       <span
                         className={`yellow-dot ${
                           showYellowDotOnArchiveEvents ? "" : "hidden"
+                        }`}
+                      ></span>
+                      Archive
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </li>
+
+            {/* Survey */}
+            <li>
+              <div
+                className={`menu-item ${surveySubmenuOpen ? "active" : ""}`}
+                onClick={() => handleMenuClick("survey")}
+                style={{ cursor: "pointer", padding: "1px 20px" }}
+              >
+                <span className="menu-icon">
+                  <RiSurveyFill />
+                </span>
+                <span className="menu-text">Survey</span>
+              </div>
+              <div
+                className={`submenu-wrapper ${
+                  surveySubmenuOpen ? "open" : ""
+                }`}
+              >
+                <ul className="submenu">
+                  <li onClick={() => setIsOpen(false)}>
+                    <Link
+                      to="/survey"
+                      className={
+                        showYellowDotOnActiveSurveys ? "active-submenu" : ""
+                      }
+                    >
+                      <span
+                        className={`yellow-dot ${
+                          showYellowDotOnActiveSurveys ? "" : "hidden"
+                        }`}
+                      ></span>
+                      Active Surveys
+                    </Link>
+                  </li>
+                  <li onClick={() => setIsOpen(false)}>
+                    <Link
+                      to="/survey/archive"
+                      className={
+                        showYellowDotOnArchiveSurveys ? "active-submenu" : ""
+                      }
+                    >
+                      <span
+                        className={`yellow-dot ${
+                          showYellowDotOnArchiveSurveys ? "" : "hidden"
                         }`}
                       ></span>
                       Archive
@@ -267,24 +336,21 @@ export default function SidebarPage() {
                 <span className="menu-text">News</span>
               </Link>
             </li>
-
-            <li
-              className={location.pathname === "/survey" ? "active" : ""}
-              onClick={() => handleMenuClick("survey")}
-            >
-              <Link to="/survey">
-                <span className="menu-icon">
-                  <RiSurveyFill />
-                </span>
-                <span className="menu-text">Survey</span>
-              </Link>
-            </li>
           </ul>
         </nav>
+
+        {/* Logo at bottom center */}
+        <div className="sidebar-logo">
+          <img src="/knot7.png" alt="Knot Logo" />
+        </div>
       </aside>
 
-      <main className="content">
-        <Outlet />
+      {/* Main content with TopBar */}
+      <main className="content relative">
+        <TopBar />
+        <div className="pt-20 px-4">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

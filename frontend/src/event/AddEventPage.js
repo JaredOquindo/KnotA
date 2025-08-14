@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./AddEventPage.css";
 
+
+
 export default function AddEventPage() {
   const [formData, setFormData] = useState({
     title: "",

@@ -1,0 +1,425 @@
+/* AddSurveyPage.css - General Layout and Form Styling */
+
+/* Main Page Container */
+.survey-creator-page {
+  width: auto;
+  height: auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Back Link Styling */
+.survey-creator-page a {
+  text-decoration: none;
+  color: #555;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+/* Page Title Styling */
+.survey-creator-page h1 {
+  margin-bottom: 20px;
+  color: #222;
+}
+
+/* Form Layout */
+form {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap; /* Allows columns to wrap on smaller screens */
+}
+
+/* Left Column Styling */
+.left-column {
+  flex: 2; /* Takes more space than the right column */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Survey details inputs */
+.survey-details input,
+.survey-details textarea {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.fixed-height-input {
+  height: 40px;
+}
+
+.survey-details textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Preview questions box container */
+.preview-questions-box {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.1);
+  min-height: 200px; /* Ensure some height even with no questions */
+  display: flex; /* For centering message when no questions */
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+/* Message when no questions are added */
+.no-questions-message {
+  text-align: center;
+  color: #888;
+  margin-top: 50px;
+  font-style: italic;
+}
+
+/* Container for individual question cards within the preview box */
+.preview-question-list {
+  display: flex;
+  flex-direction: column; /* Stacks individual question cards vertically */
+  gap: 15px; /* Spacing between question cards */
+}
+
+.preview-questions-box h2 {
+  margin-bottom: 10px;
+  color: #222;
+}
+
+/* --- Specific Styling for Each Preview Question Card --- */
+.preview-question-card {
+  background-color: #fff8e7; /* Light yellow background as per image */
+  padding: 15px 20px; /* Internal padding */
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* Soft shadow */
+  border-left: 8px solid #f4b400; /* Yellow left border as per image */
+  position: relative; /* Needed for absolute positioning of delete button */
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Adjusted gap inside card for elements */
+  overflow: hidden; /* Ensures content and shadow respect border-radius */
+}
+
+.preview-question-card h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #222;
+  margin: 0;
+  padding-right: 30px; /* Ensure space for the delete button */
+}
+
+/* Preview Options Container (for radio/checkbox/dropdown) */
+.preview-options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Spacing between options */
+}
+
+.preview-option-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: #333;
+}
+
+.preview-option-item input[type="radio"],
+.preview-option-item input[type="checkbox"] {
+  width: 18px; /* Standard size */
+  height: 18px;
+  margin: 0; /* Remove default margin */
+  cursor: pointer;
+  accent-color: #f4b400; /* Yellow accent color for modern browsers */
+}
+
+/* Custom styling for radio/checkbox if accent-color is not enough or for older browsers */
+.preview-option-item input[type="radio"] {
+  border-radius: 50%; /* Make radio buttons perfectly round */
+}
+
+.preview-option-item input[type="checkbox"] {
+  border-radius: 3px; /* Slightly rounded square for checkbox */
+}
+
+/* Preview Select (Dropdown) */
+.preview-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+  background-color: #f8f8f8;
+  color: #333;
+  margin-top: 5px; /* Space above dropdown if options are present */
+}
+
+/* Preview Rating */
+.preview-rating-container {
+  display: flex;
+  gap: 10px; /* Spacing between rating numbers */
+}
+
+.preview-rating-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  color: #333;
+}
+
+.preview-rating-item input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #f4b400;
+}
+
+/* Preview Open-Ended Textarea */
+.preview-open-ended {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background-color: #f8f8f8;
+  font-size: 15px;
+  color: #333;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+/* Generic Placeholder for other question types */
+.preview-generic-placeholder {
+  background-color: #f0f0f0;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-generic-placeholder .preview-input-placeholder {
+  width: 80%;
+  height: 30px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+}
+
+
+/* Delete button for preview questions */
+.remove-preview-question-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #000000; /* Black color for delete icon as per image */
+  font-size: 20px; /* Larger icon size */
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1; /* Adjust for icon vertical alignment */
+}
+
+.remove-preview-question-btn:hover {
+  color: #000000; /* Keep black on hover as per image */
+}
+/* --- End Preview Question Card Styling --- */
+
+/* Right Column Styling */
+.right-column {
+  flex: 1; /* Takes less space than the left column */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: flex-start; /* Align content to the top */
+  position: sticky; /* Makes the element sticky */
+  top: 50px; /* Sticks to 20px from the top of the viewport */
+  align-self: flex-start; /* Ensures it aligns to the start of the flex container */
+  height: fit-content; /* Important for sticky to work correctly with dynamic content */
+}
+
+/* Submit Button Styling */
+.submit-survey-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+  width: 200px;
+  display: block; /* Makes it a block element */
+  margin: 0 auto; /* Centers it horizontally */
+}
+
+.submit-survey-btn:hover {
+  background-color: #45a049;
+}
+
+/* Survey Creator Container (for adding questions) */
+.survey-creator-container {
+  background-color: #f8f9fa; /* Lighter background */
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 480px;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  border-top: 10px solid #ffc107;
+}
+
+/* General Input/Select/Textarea Styling within Survey Creator */
+.survey-creator-container input[type="text"],
+.survey-creator-container select,
+.survey-creator-container textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  box-sizing: border-box;
+  font-size: 12px;
+  color: #343a40;
+  background-color: #ffffff;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.survey-creator-container input[type="text"]:focus,
+.survey-creator-container select:focus,
+.survey-creator-container textarea:focus {
+  outline: none;
+  border-color: #6c757d;
+}
+
+/* Specific styling for the 'Question' textarea */
+.survey-creator-container textarea.survey-question {
+  font-weight: 500;
+  font-size: 12px;
+  color: #212529;
+  height: 80px;
+  resize: vertical;
+}
+
+/* Specific styling for the 'Survey Title' input (if it has a dedicated class or name) */
+.survey-creator-container input[name="title"] {
+  font-weight: 500;
+  font-size: 18px;
+  color: #212529;
+}
+
+/* Dropdown and Required Checkbox Row Alignment */
+.dropdown-required-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Dropdown within the row */
+.dropdown-required-row select {
+  flex-grow: 1;
+  width: auto;
+}
+
+/* Checkbox Group Styling */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.checkbox-group input[type="checkbox"] {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+/* Option Text Textarea */
+.option-text-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+  color: #000000;
+  background-color: #ffffff;
+  min-height: 40px;
+  resize: vertical;
+  margin-bottom: 10px;
+}
+
+.option-text-textarea:focus {
+  outline: none;
+  border-color: #6c757d;
+}
+
+/* Add Option Button */
+.add-option-btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 10px;
+  background-color: #f4b400;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.add-option-btn:hover {
+  background-color: #e6ac00;
+}
+
+/* Add Question Button */
+.add-question-btn {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #F4B826;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.add-question-btn:hover {
+  background-color: #ffcd39;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 900px) {
+  form {
+    flex-direction: column;
+  }
+  .left-column,
+  .right-column {
+    flex: 1;
+  }
+  .right-column { /* Disable sticky on small screens if it causes layout issues */
+    position: static;
+    top: auto;
+    align-self: auto;
+    height: auto;
+  }
+}

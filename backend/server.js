@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 
 import eventRoutes from './routes/eventRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
+import surveyRoutes from './routes/surveyRoutes.js'; // ← import survey routes
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Use routes
 app.use('/events', eventRoutes);
 app.use('/campaigns', campaignRoutes);
+app.use('/surveys', surveyRoutes); // ← register survey routes
 
 // Connect to MongoDB
 const mongoUri = process.env.MONGO_URI;

@@ -1,0 +1,132 @@
+/* TopBar.css */
+
+.topbar-container {
+  /* Positioning the top bar at the upper right */
+  position: absolute;
+  top: 2rem; /* Adjust as needed for vertical spacing from the top */
+  right: 2rem; /* Adjust as needed for horizontal spacing from the right */
+  z-index: 1000; /* Ensure it stays on top of other content */
+
+  /* Flexbox for internal layout, complementing Tailwind */
+  display: flex;
+  justify-content: space-between; /* Pushes profile to the right */
+  align-items: center; /* Vertically centers content */
+
+  /* Styling to match the image: background, padding, rounded corners, and shadow */
+  background-color: #ffffff; /* White background */
+  padding: 0.75rem 1.5rem; /* Adjust padding as needed */
+  border-radius: 12px; /* Fully rounded corners, akin to Tailwind's rounded-full */
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25); /* Subtle shadow */
+
+  /* Ensure the container adapts to its content */
+  width: fit-content;
+  max-width: 90%; /* Prevent it from stretching too wide on smaller screens */
+  height: 30px;
+
+  /* Gap between date/time and profile, responsive for smaller screens */
+  gap: 1.5rem; /* Default gap */
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Specific styles for the date and time sections */
+/* These styles enhance the appearance and ensure consistent spacing */
+.topbar-container > div:first-of-type,
+.topbar-container > div:nth-of-type(2) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Space between icon/label and value */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+/* Dropdown menu styling */
+.dropdown-menu {
+  position: absolute;
+  top: 100%; /* Position below the button */
+  right: 0; /* Align to the right of the parent button */
+  background-color: #ffffff; /* White background for the dropdown */
+  border-radius: 0.5rem; /* Rounded corners for the dropdown */
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05); /* Stronger shadow for dropdown */
+  margin-top: 0.5rem; /* Space between button and dropdown */
+  min-width: 120px; /* Minimum width for the dropdown */
+  overflow: hidden; /* Ensures rounded corners clip content */
+  z-index: 1010; /* Higher z-index than the top bar */
+  padding: 0.5rem 0; /* Vertical padding inside the dropdown */
+}
+
+/* Individual dropdown item styling */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem; /* Padding for each item */
+  text-align: left;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 15px; /* Text size */
+  color: #374151; /* Default text color, similar to gray-700 */
+  transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition for hover effects */
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6; /* Light gray background on hover */
+  color: #1f2937; /* Darker text color on hover */
+}
+
+/* Specific styling for the logout item */
+.dropdown-item.text-red-500:hover {
+  background-color: #fee2e2; /* Light red background on hover for logout */
+  color: #ef4444; /* Red text color for logout */
+}
+
+/* New styles for profile box and image */
+.profile-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem; /* Padding around the profile icon and text */
+  border-radius: 12px; /* Rounded pill shape */
+  background-color: #ffffff; /* Light background for the profile box */
+}
+
+.profile-image-circle {
+  width: 2rem; /* Fixed width */
+  height: 2rem; /* Fixed height to make it a circle */
+  border-radius: 12px; /* Makes the element perfectly circular */
+  overflow: hidden; /* Ensures the image is clipped to the circle */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #d1d5db; /* A default background color if no image */
+}
+
+.profile-image-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the circle without distortion */
+}
+
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .topbar-container {
+    flex-direction: column; /* Stack items vertically on small screens */
+    align-items: flex-start; /* Align items to the start */
+    padding: 0.5rem 1rem;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: auto; /* Allow width to be determined by content */
+    border-radius: 0.5rem; /* Less rounded corners for smaller form factor */
+  }
+
+  .topbar-container > div {
+    margin-bottom: 0.25rem; /* Small margin between stacked items */
+  }
+
+  .dropdown-menu {
+    position: relative; /* Adjust position for stacked layout */
+    width: 100%; /* Full width within the container */
+    right: auto; /* Remove right alignment */
+    margin-top: 0.25rem;
+  }
+}
