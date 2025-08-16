@@ -1,54 +1,70 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
- // you can reuse the same CSS
+import { HiOutlineNewspaper } from "react-icons/hi"; // Icon
 
 export default function ArchiveSurveyPage() {
-  const [surveys, setSurveys] = useState(null); // null means loading
+  const SURVEYS_PER_PAGE = 6; // 2 rows × 3 cards
+
+  const [surveys, setSurveys] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [error, setError] = useState(null);
 
-  const SURVEYS_PER_PAGE = 3;
-
+  // Debounce search
   useEffect(() => {
-    fetch(`http://localhost:5000/surveys?isClosed=true&limit=50`)
-      .then((res) => res.json())
-      .then(({ surveys }) => setSurveys(surveys))
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Fetch archived surveys
+  const fetchSurveys = useCallback(() => {
+    setSurveys(null);
+    setError(null);
+
+    const params = new URLSearchParams();
+    params.append("isClosed", "true");
+    if (debouncedSearchTerm) params.append("search", debouncedSearchTerm);
+    params.append("page", currentPage);
+    params.append("limit", SURVEYS_PER_PAGE);
+
+    fetch(`http://localhost:5000/surveys?${params.toString()}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch surveys");
+        return res.json();
+      })
+      .then((data) => {
+        setSurveys(data.surveys);
+        setTotalCount(data.totalCount);
+      })
       .catch((err) => {
         console.error(err);
+        setError("Failed to load archived surveys.");
         setSurveys([]);
+        setTotalCount(0);
       });
-  }, []);
+  }, [debouncedSearchTerm, currentPage]);
 
-  function getBase64Image(imgString) {
-    if (!imgString) return null;
-    if (imgString.startsWith("data:image")) return imgString;
-    return `data:image/png;base64,${imgString}`;
-  }
+  useEffect(() => {
+    fetchSurveys();
+  }, [fetchSurveys]);
 
-  // Filter surveys by search term
-  const filteredSurveys = surveys
-    ? surveys.filter((survey) =>
-        survey.title.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [];
-
-  // Pagination calculations
-  const totalPages = Math.max(1, Math.ceil(filteredSurveys.length / SURVEYS_PER_PAGE));
-  const startIndex = (currentPage - 1) * SURVEYS_PER_PAGE;
-  const currentSurveys = filteredSurveys.slice(startIndex, startIndex + SURVEYS_PER_PAGE);
-
-  // Pagination handlers
+  const totalPages = Math.max(1, Math.ceil(totalCount / SURVEYS_PER_PAGE));
   const goToPrev = () => setCurrentPage((p) => Math.max(1, p - 1));
   const goToNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
 
   const SkeletonCard = () => (
-    <div className="eventCard skeletonCard" aria-busy="true" aria-label="Loading survey">
-      <div className="eventCardContent">
-        <div className="skeletonImage" />
-        <div className="keyTermsDatesContainer">
-          <div className="skeletonKeyTerms" />
-          <div className="skeletonDates" />
-        </div>
+    <div
+      className="eventCard skeletonCard"
+      style={{ height: "180px", display: "flex", flexDirection: "column" }}
+      aria-busy="true"
+      aria-label="Loading archived survey"
+    >
+      <div className="eventCardContent" style={{ flex: 1 }}>
         <div className="skeletonTitle" />
         <div className="skeletonDescription" />
         <div className="eventFooter">
@@ -61,30 +77,36 @@ export default function ArchiveSurveyPage() {
   return (
     <div className="container">
       <h1>Archived Surveys</h1>
-      <p>Total Archived: {surveys ? surveys.length : "..."}</p>
+      <p>Total Archived: {surveys === null ? "..." : totalCount}</p>
 
       <div className="header">
         <input
           type="text"
           placeholder="Search archived surveys by title..."
           value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1);
-          }}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="searchInput"
           disabled={surveys === null}
+          aria-label="Search archived surveys"
         />
       </div>
 
       {surveys === null ? (
-        <div className="eventsList">
+        <div
+          className="eventsList"
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "15px" }}
+        >
           {[...Array(SURVEYS_PER_PAGE)].map((_, idx) => (
             <SkeletonCard key={idx} />
           ))}
         </div>
-      ) : currentSurveys.length === 0 ? (
-        <div className="eventsList" style={{ justifyContent: "center", position: "relative" }}>
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
+      ) : surveys.length === 0 ? (
+        <div
+          className="eventsList"
+          style={{ justifyContent: "center", position: "relative" }}
+        >
           <p
             style={{
               position: "absolute",
@@ -101,54 +123,67 @@ export default function ArchiveSurveyPage() {
           </p>
         </div>
       ) : (
-        <div className="eventsList">
-          {currentSurveys.map((survey) => (
-            <Link key={survey._id} to={`/survey/${survey._id}`} className="eventCard">
-              <div className="eventCardContent">
-                {survey.pictures && survey.pictures.length > 0 ? (
-                  <img
-                    src={getBase64Image(survey.pictures[0])}
-                    alt={survey.title}
-                    className="eventImage"
-                    onError={(e) => (e.target.style.display = "none")}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      height: "200px",
-                      backgroundColor: "#eee",
-                      borderRadius: 10,
-                      marginBottom: 8,
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      color: "#999",
-                    }}
-                  >
-                    No image available
-                  </div>
-                )}
-
-                <div className="keyTermsDatesContainer">
-                  {survey.keyTerms && survey.keyTerms.length > 0 ? (
-                    <div className="keyTermsContainer">
-                      {survey.keyTerms.map((term, idx) => (
-                        <span key={idx} className="keyTerm">
-                          {term}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ color: "red", fontSize: "10px" }}>No key terms</div>
-                  )}
+        <div
+          className="eventsList"
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "15px" }}
+        >
+          {surveys.map((survey) => (
+            <Link
+              key={survey._id}
+              to={`/survey/${survey._id}`}
+              className="eventCard"
+              style={{ height: "180px", display: "flex", flexDirection: "column" }}
+            >
+              <div className="eventCardContent" style={{ flex: 1 }}>
+                {/* Yellow header with icon */}
+                <div
+                  style={{
+                    backgroundColor: "#F4B826",
+                    padding: "8px 12px",
+                    borderRadius: "8px 8px 0 0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    fontSize: "1.5rem",
+                    color: "white",
+                  }}
+                >
+                  <HiOutlineNewspaper />
                 </div>
 
-                <h2>{survey.title}</h2>
+                {/* Title */}
+                <h2
+                  style={{
+                    margin: "10px 0 5px",
+                    fontSize: "1rem",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {survey.title}
+                </h2>
 
-                <p>{survey.description}</p>
+                {/* Description */}
+                <p
+                  style={{
+                    color: "#555",
+                    fontSize: "0.9rem",
+                    flex: 1,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {survey.description}
+                </p>
 
-                <div className="eventFooter">
-                  <span role="img" aria-label="user">👤</span> {survey.participantCount || 0}
+                {/* Footer */}
+                <div
+                  className="eventFooter"
+                  style={{ fontSize: "0.85rem", marginTop: "auto" }}
+                >
+                  <span role="img" aria-label="responses"></span>{" "}
+                  {survey.participantCount || 0} responses
                 </div>
               </div>
             </Link>
@@ -158,8 +193,8 @@ export default function ArchiveSurveyPage() {
 
       <div className="pagination-bar">
         <span className="pagination-info">
-          {filteredSurveys.length === 0 ? 0 : startIndex + 1} to{" "}
-          {Math.min(startIndex + SURVEYS_PER_PAGE, filteredSurveys.length)} of {filteredSurveys.length}
+          {totalCount === 0 ? 0 : (currentPage - 1) * SURVEYS_PER_PAGE + 1} to{" "}
+          {Math.min(currentPage * SURVEYS_PER_PAGE, totalCount)} of {totalCount}
         </span>
         <div className="pagination-controls">
           <button onClick={goToPrev} disabled={currentPage === 1} className="page-btn">
@@ -168,7 +203,7 @@ export default function ArchiveSurveyPage() {
           <span className="page-text">
             Page {currentPage} of {totalPages}
           </span>
-          <button onClick={goToNext} disabled={currentPage === totalPages || totalPages === 0} className="page-btn">
+          <button onClick={goToNext} disabled={currentPage === totalPages} className="page-btn">
             &gt;
           </button>
         </div>

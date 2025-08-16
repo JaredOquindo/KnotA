@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { FaEdit } from "react-icons/fa";
+import { MdOutlineDeleteOutline } from "react-icons/md";
 import "./EventDetailPage.css";
 
 export default function EventDetailPage() {
@@ -27,7 +29,7 @@ export default function EventDetailPage() {
   const PARTICIPANTS_PER_PAGE = 5;
 
   // Mobile layout state - switches at 1000px
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1000);
 
   function getBase64Image(imgString) {
     if (!imgString) return null;
@@ -37,7 +39,7 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     function handleResize() {
-      setIsMobile(window.innerWidth <= 600);
+      setIsMobile(window.innerWidth <= 1200);
     }
 
     handleResize();
@@ -169,34 +171,36 @@ export default function EventDetailPage() {
 
       {/* Buttons fixed at top-right inside container */}
       <div className="event-buttons">
+        <button
+          className="icon-btn"
+          onClick={() => setIsEditing(true)}
+          disabled={loading}
+          title="Edit Event"
+        >
+          <FaEdit size={20} />
+        </button>
+
+        <button
+          className="icon-btn danger-btn"
+          onClick={handleDelete}
+          disabled={loading}
+          title="Delete Event"
+          style={{ marginLeft: 8 }}
+        >
+          <MdOutlineDeleteOutline size={20} />
+        </button>
+
         {!event?.isClosed && (
           <button
             className="danger-btn"
             onClick={handleClose}
             disabled={loading}
             title="Close Event"
+            style={{ marginLeft: 8 }}
           >
             {loading ? "Processing..." : "Close Event"}
           </button>
         )}
-        <button
-          className="primary-btn"
-          onClick={() => setIsEditing(true)}
-          disabled={loading}
-          title="Edit Event"
-          style={{ marginLeft: 8 }}
-        >
-          Edit
-        </button>
-        <button
-          className="danger-btn"
-          onClick={handleDelete}
-          disabled={loading}
-          title="Delete Event"
-          style={{ marginLeft: 8 }}
-        >
-          {loading ? "Processing..." : "Delete"}
-        </button>
       </div>
 
       {error && <p className="error-message">Error: {error}</p>}
@@ -206,7 +210,6 @@ export default function EventDetailPage() {
       ) : (
         <>
           <div className={`event-main ${isMobile ? "portrait-layout" : ""}`}>
-            {/* Left image */}
             <div className="event-image-box">
               {event.banner ? (
                 <img
@@ -223,9 +226,7 @@ export default function EventDetailPage() {
               )}
             </div>
 
-            {/* Right info box */}
             <div className="event-info-box">
-              {/* Key terms */}
               {event.keyTerms && event.keyTerms.length > 0 && (
                 <div className="tags" aria-label="Event key terms">
                   {event.keyTerms.map((term, idx) => (
@@ -236,7 +237,6 @@ export default function EventDetailPage() {
                 </div>
               )}
 
-              {/* Dates underneath tags */}
               <div className="dates" style={{ marginTop: "8px" }}>
                 <span>
                   <b>Start Date:</b> {new Date(event.startDate).toLocaleDateString()}
@@ -246,15 +246,12 @@ export default function EventDetailPage() {
                 </span>
               </div>
 
-              {/* Title */}
               <h1 className="event-title">{event.title}</h1>
 
-              {/* Description */}
               <p className="event-description">{event.description}</p>
             </div>
           </div>
 
-          {/* Participants box */}
           <div className="participants-section">
             <h2>Participants</h2>
             {totalParticipants > 0 ? (
@@ -285,13 +282,17 @@ export default function EventDetailPage() {
                 <div className="pagination">
                   <span>
                     Showing {(currentPage - 1) * PARTICIPANTS_PER_PAGE + 1} to{" "}
-                    {Math.min(currentPage * PARTICIPANTS_PER_PAGE, totalParticipants)} of {totalParticipants}
+                    {Math.min(currentPage * PARTICIPANTS_PER_PAGE, totalParticipants)} of{" "}
+                    {totalParticipants}
                   </span>
                   <div className="pagination-controls">
                     <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
                       {"<"}
                     </button>
-                    <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+                    <button
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
                       {">"}
                     </button>
                   </div>
@@ -302,62 +303,32 @@ export default function EventDetailPage() {
             )}
           </div>
 
-          {/* Edit form */}
           {isEditing && (
             <div className="edit-section" style={{ marginTop: 30 }}>
               <h2>Edit Event</h2>
               <label>
                 Title:
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                />
+                <input type="text" name="title" value={formData.title} onChange={handleChange} />
               </label>
               <label>
                 Location:
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                />
+                <input type="text" name="location" value={formData.location} onChange={handleChange} />
               </label>
               <label>
                 Start Date:
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                />
+                <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} />
               </label>
               <label>
                 End Date:
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                />
+                <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} />
               </label>
               <label>
                 Description:
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                />
+                <textarea name="description" value={formData.description} onChange={handleChange} />
               </label>
               <label>
                 Key Terms (comma separated):
-                <input
-                  type="text"
-                  name="keyTerms"
-                  value={formData.keyTerms}
-                  onChange={handleChange}
-                />
+                <input type="text" name="keyTerms" value={formData.keyTerms} onChange={handleChange} />
               </label>
               <div className="form-actions">
                 <button className="primary-btn" onClick={handleSave} disabled={loading}>

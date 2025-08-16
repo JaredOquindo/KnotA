@@ -17,18 +17,26 @@ import ArchiveCampaignPage from "./campaign/ArchiveCampaignPage";
 import SurveyPage from "./survey/SurveyPage";
 import AddSurveyPage from "./survey/AddSurveyPage";
 import ArchiveSurveyPage from "./survey/ArchiveSurveyPage";
+import SurveyDetailPage from "./survey/SurveyDetailPage";
 
-function Dashboard() { return <h1>Dashboard Page</h1>; }
-function Records() { return <h1>Records Page</h1>; }
-function Donation() { return <h1>Donation Page</h1>; }
-function News() { return <h1>News Page</h1>; }
+function Dashboard() {
+  return <h1>Dashboard Page</h1>;
+}
+function Records() {
+  return <h1>Records Page</h1>;
+}
+function Donation() {
+  return <h1>Donation Page</h1>;
+}
+function News() {
+  return <h1>News Page</h1>;
+}
 
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<SidebarPage />}>
-
           {/* Event routes */}
           <Route path="events" element={<EventsPage />} />
           <Route path="events/archive" element={<ArchivePage />} />
@@ -45,6 +53,7 @@ export default function App() {
           <Route path="survey" element={<SurveyPage />} />
           <Route path="survey/add" element={<AddSurveyPage />} />
           <Route path="survey/archive" element={<ArchiveSurveyPage />} />
+          <Route path="survey/:id" element={<SurveyDetailPage />} />
 
           {/* Other main routes */}
           <Route path="dashboard" element={<Dashboard />} />

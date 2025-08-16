@@ -145,7 +145,7 @@ export default function SurveyPage({ showClosed = false }) {
           {surveys.map((survey) => (
             <Link
               key={survey._id}
-              to={`/surveys/${survey._id}`}
+              to={`/survey/${survey._id}`} // FIXED: match App.jsx route
               className="eventCard"
               style={{
                 height: "180px",

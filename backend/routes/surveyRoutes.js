@@ -3,7 +3,9 @@ import Survey from "../models/Survey.js";
 
 const router = express.Router();
 
-// Create a new survey
+/**
+ * Create a new survey
+ */
 router.post("/", async (req, res) => {
   try {
     const { title, description, creatorId, targetAudience, questions } = req.body;
@@ -25,7 +27,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Get all surveys (active or archived)
+/**
+ * Get all surveys (active or archived)
+ */
 router.get("/", async (req, res) => {
   try {
     const { isClosed = "false", search = "", page = 1, limit = 10 } = req.query;
@@ -50,7 +54,9 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Get single survey (place after /add and /archive)
+/**
+ * Get single survey
+ */
 router.get("/:id", async (req, res) => {
   try {
     const survey = await Survey.findById(req.params.id);
@@ -59,6 +65,100 @@ router.get("/:id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch survey" });
+  }
+});
+
+/**
+ * Get all responses for a survey
+ */
+router.get("/:id/responses", async (req, res) => {
+  try {
+    const survey = await Survey.findById(req.params.id);
+    if (!survey) return res.status(404).json({ message: "Survey not found" });
+    res.json(survey.responses || []);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch responses" });
+  }
+});
+
+/**
+ * Submit a response for a survey
+ */
+router.post("/:id/responses", async (req, res) => {
+  try {
+    const { answers, userId } = req.body;
+
+    const survey = await Survey.findById(req.params.id);
+    if (!survey) return res.status(404).json({ message: "Survey not found" });
+
+    const newResponse = {
+      surveyId: req.params.id,
+      userId: userId || null,
+      submittedAt: new Date(),
+      answers: answers.map((a) => ({
+        questionId: survey.questions.find((q) => q.text === a.question)._id,
+        answer: a.answer,
+      })),
+    };
+
+    survey.responses.push(newResponse);
+    await survey.save();
+
+    res.status(201).json({ message: "Response submitted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to submit response" });
+  }
+});
+
+/**
+ * Delete a survey
+ */
+router.delete("/:id", async (req, res) => {
+  try {
+    const deletedSurvey = await Survey.findByIdAndDelete(req.params.id);
+    if (!deletedSurvey) return res.status(404).json({ message: "Survey not found" });
+    res.json({ message: "Survey deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete survey" });
+  }
+});
+
+/**
+ * Close a survey
+ */
+router.patch("/:id/close", async (req, res) => {
+  try {
+    const updatedSurvey = await Survey.findByIdAndUpdate(
+      req.params.id,
+      { isActive: false },
+      { new: true }
+    );
+    if (!updatedSurvey) return res.status(404).json({ message: "Survey not found" });
+    res.json({ message: "Survey closed successfully", survey: updatedSurvey });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to close survey" });
+  }
+});
+
+/**
+ * Update a survey (Edit questions/options/title/description)
+ */
+router.patch("/:id", async (req, res) => {
+  try {
+    const updatedSurvey = await Survey.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+    if (!updatedSurvey) return res.status(404).json({ message: "Survey not found" });
+    res.json(updatedSurvey);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update survey" });
   }
 });
 

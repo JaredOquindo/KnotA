@@ -87,7 +87,10 @@ export default function SidebarPage() {
     }
     fetch(`http://localhost:5000/surveys/${match[1]}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((survey) => setIsViewingClosedSurvey(survey.isClosed === true))
+      .then((survey) =>
+        // ✅ Fix: check status instead of isClosed
+        setIsViewingClosedSurvey(survey.status === "closed")
+      )
       .catch(() => setIsViewingClosedSurvey(false));
   }, [location]);
 
@@ -170,9 +173,7 @@ export default function SidebarPage() {
             {/* Campaigns */}
             <li>
               <div
-                className={`menu-item ${
-                  campaignsSubmenuOpen ? "active" : ""
-                }`}
+                className={`menu-item ${campaignsSubmenuOpen ? "active" : ""}`}
                 onClick={() => handleMenuClick("campaigns")}
                 style={{ cursor: "pointer", padding: "1px 20px" }}
               >

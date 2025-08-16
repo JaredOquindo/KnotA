@@ -6,14 +6,13 @@ const OptionSchema = new Schema({
   text: { type: String, required: true },
   value: { type: Number },
   order: { type: Number },
-  // For matrix/grid
   rowText: { type: String },
   colText: { type: String },
 });
 
 // Question Schema
 const QuestionSchema = new Schema({
-  surveyId: { type: Schema.Types.ObjectId, ref: "Survey" }, // removed required
+  surveyId: { type: Schema.Types.ObjectId, ref: "Survey" },
   type: {
     type: String,
     enum: [

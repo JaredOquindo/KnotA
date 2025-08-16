@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { MdLockOutline as MdLockClosed } from "react-icons/md";
 import "./EventsPage.css";
 
 export default function ArchivePage() {
@@ -27,7 +28,7 @@ export default function ArchivePage() {
     return `data:image/png;base64,${imgString}`;
   }
 
-  // Filter events by search term (case insensitive)
+  // Filter events by search term
   const filteredEvents = events
     ? events.filter((event) =>
         event.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -104,30 +105,6 @@ export default function ArchivePage() {
           >
             No archived events found.
           </p>
-
-          <div
-            className="eventCard"
-            style={{
-              visibility: "hidden",
-              pointerEvents: "none",
-              userSelect: "none",
-            }}
-          >
-            <div className="eventCardContent">
-              <div
-                style={{
-                  height: "200px",
-                  backgroundColor: "#eee",
-                  borderRadius: 10,
-                  marginBottom: 8,
-                }}
-              />
-              <div className="keyTermsDatesContainer" />
-              <div style={{ height: "1.5rem", marginBottom: "0.5rem" }} aria-hidden="true" />
-              <p style={{ height: "3rem" }} aria-hidden="true" />
-              <div className="eventFooter" style={{ height: "1.5rem" }} />
-            </div>
-          </div>
         </div>
       ) : (
         <div className="eventsList">
@@ -184,14 +161,10 @@ export default function ArchivePage() {
                 </div>
 
                 <h2>{event.title}</h2>
-
                 <p>{event.description}</p>
 
                 <div className="eventFooter">
-                  <span role="img" aria-label="user">
-                    👤
-                  </span>{" "}
-                  {event.attendeeCount || 1}
+                  <MdLockClosed style={{ color: "red", fontSize: "1.2rem" }} />{" "}
                 </div>
               </div>
             </Link>
@@ -201,9 +174,7 @@ export default function ArchivePage() {
 
       <div className="pagination-bar">
         <span className="pagination-info">
-          {filteredEvents.length === 0
-            ? 0
-            : startIndex + 1} to{" "}
+          {filteredEvents.length === 0 ? 0 : startIndex + 1} to{" "}
           {Math.min(startIndex + EVENTS_PER_PAGE, filteredEvents.length)} of {filteredEvents.length}
         </span>
         <div className="pagination-controls">

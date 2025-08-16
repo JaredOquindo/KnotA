@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { MdLockOpen, MdLockOutline as MdLockClosed } from "react-icons/md";
 import "./EventsPage.css";
 
 export default function EventsPage({ showClosed = false }) {
@@ -16,13 +17,13 @@ export default function EventsPage({ showClosed = false }) {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm.trim());
-      setCurrentPage(1); // reset to page 1 on search change
+      setCurrentPage(1);
     }, 400);
 
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Fetch events from backend with filters and pagination
+  // Fetch events from backend
   const fetchEvents = useCallback(() => {
     setEvents(null);
     setError(null);
@@ -39,7 +40,6 @@ export default function EventsPage({ showClosed = false }) {
         return res.json();
       })
       .then((data) => {
-        // Backend returns { events: [...], totalCount: number }
         setEvents(data.events);
         setTotalCount(data.totalCount);
       })
@@ -60,9 +60,7 @@ export default function EventsPage({ showClosed = false }) {
   const goToPrev = () => setCurrentPage((p) => Math.max(1, p - 1));
   const goToNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
 
-  // === Removed getBase64Image function ===
-
-  // Loading skeleton card
+  // Skeleton card
   const SkeletonCard = () => (
     <div className="eventCard skeletonCard" aria-busy="true" aria-label="Loading event">
       <div className="eventCardContent">
@@ -124,7 +122,6 @@ export default function EventsPage({ showClosed = false }) {
           >
             {showClosed ? "No archived events found." : "No open events found."}
           </p>
-
           <div
             className="eventCard"
             style={{
@@ -159,7 +156,7 @@ export default function EventsPage({ showClosed = false }) {
               <div className="eventCardContent">
                 {event.pictures && event.pictures.length > 0 ? (
                   <img
-                    src={event.pictures[0]} // <-- assume this is an image URL now
+                    src={event.pictures[0]}
                     alt={event.title}
                     className="eventImage"
                     onError={(e) => {
@@ -208,14 +205,15 @@ export default function EventsPage({ showClosed = false }) {
                 </div>
 
                 <h2>{event.title}</h2>
-
                 <p>{event.description}</p>
 
                 <div className="eventFooter">
-                  <span role="img" aria-label="user">
-                    👤
-                  </span>{" "}
-                  {event.attendeeCount || 1}
+                  {event.isClosed ? (
+                    <MdLockClosed style={{ color: "red", fontSize: "1.2rem" }} />
+                  ) : (
+                    <MdLockOpen style={{ color: "green", fontSize: "1.2rem" }} />
+                  )}
+                  {" "}
                 </div>
               </div>
             </Link>

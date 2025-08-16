@@ -110,23 +110,31 @@
 /* Responsive adjustments for smaller screens */
 @media (max-width: 768px) {
   .topbar-container {
-    flex-direction: column; /* Stack items vertically on small screens */
-    align-items: flex-start; /* Align items to the start */
-    padding: 0.5rem 1rem;
+    position: absolute;
     top: 0.5rem;
-    right: 0.5rem;
-    width: auto; /* Allow width to be determined by content */
-    border-radius: 0.5rem; /* Less rounded corners for smaller form factor */
+    left: 50%;
+    transform: translateX(-50%);
+
+    flex-direction: row; /* Keep items in one horizontal line */
+    justify-content: center; /* Center items horizontally inside */
+    align-items: center; /* Center vertically */
+    padding: 0.5rem 1rem;
+    width: fit-content; /* Fit to content width */
+    border-radius: 0.5rem;
+    gap: 1rem; /* Space between items */
   }
 
   .topbar-container > div {
-    margin-bottom: 0.25rem; /* Small margin between stacked items */
+    margin-bottom: 0; /* Remove vertical gap */
   }
 
   .dropdown-menu {
-    position: relative; /* Adjust position for stacked layout */
-    width: 100%; /* Full width within the container */
-    right: auto; /* Remove right alignment */
+    position: absolute; /* Keep dropdown positioned correctly */
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%); /* Center below bar */
+    width: auto;
+    right: auto;
     margin-top: 0.25rem;
   }
 }
