@@ -61,8 +61,8 @@ export default function App() {
           <Route path="donation" element={<Donation />} />
           <Route path="news" element={<News />} />
 
-          {/* Default index route */}
-          <Route index element={<EventsPage />} />
+          {/* Default landing page */}
+          <Route index element={<Dashboard />} />
         </Route>
       </Routes>
     </Router>
