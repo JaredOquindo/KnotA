@@ -11,6 +11,7 @@ export default function SurveyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [submissions, setSubmissions] = useState([]);
   const [editMode, setEditMode] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null); // for modal
 
   useEffect(() => {
     const fetchSurvey = async () => {
@@ -19,7 +20,7 @@ export default function SurveyDetailPage() {
         if (!res.ok) throw new Error("Failed to load survey");
         const data = await res.json();
         setSurvey(data);
-        setEditSurvey(data); // copy for editing
+        setEditSurvey(data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -51,23 +52,41 @@ export default function SurveyDetailPage() {
 
   const handleSubmitAnswers = async (e) => {
     e.preventDefault();
+
+    if (Object.keys(answers).length === 0) {
+      alert("Please answer at least one question before submitting.");
+      return;
+    }
+
     try {
       const payload = {
         surveyId: survey._id,
-        answers: Object.entries(answers).map(([qIndex, value]) => ({
-          question: survey.questions[qIndex].text,
-          answer: value,
-        })),
+        answers: Object.entries(answers).map(([qIndex, value]) => {
+          const questionId = survey.questions[qIndex]._id;
+          return {
+            questionId: questionId,
+            answer: value,
+          };
+        }),
       };
+
       const res = await fetch(`http://localhost:5000/surveys/${id}/responses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed to submit survey");
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Submission failed:", errorData);
+        throw new Error("Failed to submit survey");
+      }
+
+      alert("Survey submitted successfully!");
       navigate("/survey");
     } catch (err) {
-      console.error(err);
+      console.error("An error occurred during submission:", err);
+      alert("An error occurred. Please try again.");
     }
   };
 
@@ -80,13 +99,13 @@ export default function SurveyDetailPage() {
   const handleSaveEdit = async () => {
     try {
       const res = await fetch(`http://localhost:5000/surveys/${id}`, {
-        method: "PATCH", // PATCH for partial update
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editSurvey),
       });
       if (!res.ok) throw new Error("Failed to update survey");
       const updated = await res.json();
-      setSurvey(updated); // updated survey from backend
+      setSurvey(updated);
       setEditMode(false);
       alert("Survey updated successfully!");
     } catch (err) {
@@ -123,6 +142,23 @@ export default function SurveyDetailPage() {
     }
   };
 
+  // DELETE a submission
+  const handleDeleteSubmission = async (submissionId) => {
+    if (window.confirm("Are you sure you want to delete this submission?")) {
+      try {
+        const res = await fetch(`http://localhost:5000/surveys/${id}/responses/${submissionId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Failed to delete submission");
+        alert("Submission deleted successfully!");
+        setSubmissions((prev) => prev.filter((s) => s._id !== submissionId));
+        closeSubmissionModal();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
   const renderQuestionField = (q, i) => {
     if (editMode) {
       return (
@@ -137,7 +173,6 @@ export default function SurveyDetailPage() {
             }}
           />
           <p className="question-type">({q.type})</p>
-
           {(q.type === "multiple-choice" || q.type === "checkbox" || q.type === "dropdown") && (
             <div className="options-edit">
               {editSurvey.questions[i].options.map((opt, idx) => (
@@ -179,7 +214,6 @@ export default function SurveyDetailPage() {
       );
     }
 
-    // Normal answering mode
     switch (q.type) {
       case "multiple-choice":
         return q.options.map((opt, idx) => (
@@ -281,6 +315,9 @@ export default function SurveyDetailPage() {
     }
   };
 
+  const openSubmissionModal = (submission) => setSelectedSubmission(submission);
+  const closeSubmissionModal = () => setSelectedSubmission(null);
+
   if (loading) return <p>Loading survey...</p>;
   if (!survey) return <p>Survey not found.</p>;
 
@@ -343,7 +380,14 @@ export default function SurveyDetailPage() {
           <p><strong>Total Submissions:</strong> {submissions.length}</p>
           <ul className="submission-list">
             {submissions.map((s, index) => (
-              <li key={index}>{s.userName || "Anonymous"}</li>
+              <li
+                key={index}
+                className="submission-item"
+                onClick={() => openSubmissionModal(s)}
+                style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
+              >
+                {s.userName || "Anonymous"}
+              </li>
             ))}
           </ul>
 
@@ -354,6 +398,35 @@ export default function SurveyDetailPage() {
           </div>
         </div>
       </div>
+
+      {selectedSubmission && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="submission-form">
+              <div className="submission-header">
+                <h3>{survey.title}</h3>
+                <p>{survey.description}</p>
+                <p className="submission-user"><strong>Submitted by:</strong> {selectedSubmission.userName || "Anonymous"}</p>
+              </div>
+              <hr />
+              <div className="submission-answers">
+                {selectedSubmission.answers.map((a, i) => (
+                  <div key={i} className="submission-answer-item">
+                    <p className="submission-question"><strong>{a.question}</strong></p>
+                    <div className="submission-answer">
+                      {Array.isArray(a.answer) ? a.answer.join(", ") : a.answer}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => handleDeleteSubmission(selectedSubmission._id)} className="delete-btn">Delete Submission</button>
+              <button onClick={closeSubmissionModal} className="close-modal-btn">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

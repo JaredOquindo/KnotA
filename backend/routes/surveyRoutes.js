@@ -1,3 +1,4 @@
+// routes/surveyRoutes.js
 import express from "express";
 import Survey from "../models/Survey.js";
 
@@ -75,7 +76,19 @@ router.get("/:id/responses", async (req, res) => {
   try {
     const survey = await Survey.findById(req.params.id);
     if (!survey) return res.status(404).json({ message: "Survey not found" });
-    res.json(survey.responses || []);
+
+    const responsesWithText = survey.responses.map((resp) => ({
+      ...resp.toObject(),
+      answers: resp.answers.map((a) => {
+        const question = survey.questions.id(a.questionId);
+        return {
+          question: question ? question.text : "Deleted question",
+          answer: a.answer,
+        };
+      }),
+    }));
+
+    res.json(responsesWithText);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to fetch responses" });
@@ -97,7 +110,7 @@ router.post("/:id/responses", async (req, res) => {
       userId: userId || null,
       submittedAt: new Date(),
       answers: answers.map((a) => ({
-        questionId: survey.questions.find((q) => q.text === a.question)._id,
+        questionId: a.questionId,
         answer: a.answer,
       })),
     };
@@ -123,6 +136,32 @@ router.delete("/:id", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to delete survey" });
+  }
+});
+
+/**
+ * Delete a single response from a survey
+ */
+router.delete("/:surveyId/responses/:responseId", async (req, res) => {
+  try {
+    const { surveyId, responseId } = req.params;
+
+    const survey = await Survey.findById(surveyId);
+    if (!survey) return res.status(404).json({ message: "Survey not found" });
+
+    const responseIndex = survey.responses.findIndex(
+      (r) => r._id.toString() === responseId
+    );
+    if (responseIndex === -1)
+      return res.status(404).json({ message: "Response not found" });
+
+    survey.responses.splice(responseIndex, 1);
+    await survey.save();
+
+    res.json({ message: "Response deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete response" });
   }
 });
 

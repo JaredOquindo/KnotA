@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { HiOutlineNewspaper } from "react-icons/hi"; // Icon
+import { IoPersonSharp } from "react-icons/io5";
+
 
 export default function ArchiveSurveyPage() {
   const SURVEYS_PER_PAGE = 6; // 2 rows × 3 cards
@@ -177,13 +179,21 @@ export default function ArchiveSurveyPage() {
                   {survey.description}
                 </p>
 
-                {/* Footer */}
+                {/* Footer showing number of responses */}
                 <div
                   className="eventFooter"
-                  style={{ fontSize: "0.85rem", marginTop: "auto" }}
+                  style={{
+                    fontSize: "0.85rem",
+                    marginTop: "auto",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                  }}
                 >
-                  <span role="img" aria-label="responses"></span>{" "}
-                  {survey.participantCount || 0} responses
+                  <span role="img" aria-label="responses">
+                    <IoPersonSharp />
+                  </span>
+                  <span>{survey.responses ? survey.responses.length : 0} Responses</span>
                 </div>
               </div>
             </Link>

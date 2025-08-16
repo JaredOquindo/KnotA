@@ -118,6 +118,29 @@ export default function CampaignDetailPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ PayMaya Payment Function
+  const handlePayMaya = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/paymaya/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaignId: id, amount: 200 }), // example fixed amount = ₱200
+      });
+
+      const data = await response.json();
+      console.log("PayMaya response:", data);
+
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+      } else {
+        alert("Payment creation failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      alert("Error while processing payment.");
+    }
+  };
+
   return (
     <div className="campaign-page">
       <div className="campaign-container">
@@ -191,6 +214,17 @@ export default function CampaignDetailPage() {
                     <li key={idx}>{donor.name} - ${donor.amount}</li>
                   ))}
                 </ul>
+              </div>
+
+              {/* ✅ PayMaya Donate Button */}
+              <div style={{ marginTop: 20, textAlign: "center" }}>
+                <button
+                  onClick={handlePayMaya}
+                  className="primary-btn"
+                  style={{ backgroundColor: "#0284C7" }}
+                >
+                  Donate ₱200 with PayMaya
+                </button>
               </div>
 
               {isEditing && (

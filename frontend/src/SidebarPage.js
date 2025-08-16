@@ -88,7 +88,6 @@ export default function SidebarPage() {
     fetch(`http://localhost:5000/surveys/${match[1]}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((survey) =>
-        // ✅ Fix: check status instead of isClosed
         setIsViewingClosedSurvey(survey.status === "closed")
       )
       .catch(() => setIsViewingClosedSurvey(false));
@@ -143,7 +142,16 @@ export default function SidebarPage() {
         <FaBars />
       </button>
       <aside className={`sidebar ${isOpen ? "open" : ""}`}>
-        <h2 className="logo">My App</h2>
+        {/* Top box with logo and school name */}
+        <div className="sidebar-header">
+          <img
+            src="/Ateneo.png"
+            alt="Logo"
+            className="sidebar-logo-img"
+          />
+          <span className="sidebar-school-name">Ateneo De Naga University</span>
+        </div>
+
         <nav>
           <ul>
             <li

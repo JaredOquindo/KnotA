@@ -56,6 +56,7 @@ router.post('/', upload.array('pictures', 3), async (req, res) => {
       contactPhone: req.body.contactPhone,
       pictures: imageUrls,
       isClosed: req.body.isClosed === 'true' || req.body.isClosed === true || false,
+      keyTerms: req.body.keyTerms ? JSON.parse(req.body.keyTerms) : [], // ✅ Added
     };
 
     const campaign = new Campaign(campaignData);
@@ -147,13 +148,25 @@ router.delete('/:id', async (req, res) => {
 });
 
 // UPDATE campaign
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.array('pictures', 3), async (req, res) => {
   try {
+    const updateData = {
+      ...req.body,
+      keyTerms: req.body.keyTerms ? JSON.parse(req.body.keyTerms) : [],
+    };
+
+    // If new images uploaded, replace them
+    if (req.files && req.files.length > 0) {
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      updateData.pictures = req.files.map(file => `${baseUrl}/uploads/${file.filename}`);
+    }
+
     const updatedCampaign = await Campaign.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
+
     if (!updatedCampaign) return res.status(404).json({ message: 'Campaign not found' });
     res.json(updatedCampaign);
   } catch (err) {
