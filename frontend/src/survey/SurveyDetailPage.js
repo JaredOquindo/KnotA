@@ -357,4 +357,3 @@ export default function SurveyDetailPage() {
     </div>
   );
 }
-SA
