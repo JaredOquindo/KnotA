@@ -11,8 +11,7 @@ export default function HomePage() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  console.log("API URL:", import.meta.env.VITE_API_URL);
-
+  
   // Sticky Header scroll listener
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
