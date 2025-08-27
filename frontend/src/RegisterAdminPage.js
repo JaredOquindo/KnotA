@@ -23,7 +23,7 @@ export default function RegisterAdminPage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/register-admin/${institutionId}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/register-admin/${institutionId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fullName, email, password }),
