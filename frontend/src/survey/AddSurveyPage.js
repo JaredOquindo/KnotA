@@ -32,7 +32,7 @@ export default function SurveyCreatorPage() {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("No token found");
 
-        const res = await fetch("http://localhost:5000/auth/me", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -119,7 +119,7 @@ export default function SurveyCreatorPage() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("User not authenticated.");
 
-      const res = await fetch("http://localhost:5000/surveys", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/surveys", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

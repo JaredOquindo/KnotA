@@ -9,7 +9,7 @@ export default function PayMayaButton({ campaignId, amount }) {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/paymaya/create-payment", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/paymaya/create-payment"`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

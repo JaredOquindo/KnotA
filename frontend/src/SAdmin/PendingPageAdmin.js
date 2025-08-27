@@ -31,7 +31,7 @@ export default function PendingPageAdmin() {
     params.append("page", currentPage);
     params.append("limit", PENDING_PER_PAGE);
 
-    fetch(`http://localhost:5000/institutions/pending?${params.toString()}`)
+    fetch(`${import.meta.env.VITE_API_URL}/institutions/pending?${params.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch pending items");
         return res.json();
@@ -59,7 +59,7 @@ export default function PendingPageAdmin() {
   const approveInstitution = async (id) => {
     if (!window.confirm("Approve this institution? An email will be sent.")) return;
     try {
-      const res = await fetch(`http://localhost:5000/institutions/${id}/approve`, { method: "PATCH" });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/institutions/${id}/approve`, { method: "PATCH" });
       const data = await res.json();
       alert(data.message);
       fetchPendings();
@@ -72,7 +72,7 @@ export default function PendingPageAdmin() {
   const deleteInstitution = async (id) => {
     if (!window.confirm("Are you sure you want to delete this institution?")) return;
     try {
-      await fetch(`http://localhost:5000/institutions/${id}`, { method: "DELETE" });
+      await fetch(`${import.meta.env.VITE_API_URL}/institutions/${id}`, { method: "DELETE" });
       fetchPendings();
     } catch (err) {
       console.error(err);

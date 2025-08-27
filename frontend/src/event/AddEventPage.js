@@ -33,7 +33,7 @@ export default function AddEventPage() {
           return;
         }
 
-        const res = await fetch("http://localhost:5000/institutions/my-institution", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/institutions/my-institution", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -107,7 +107,7 @@ export default function AddEventPage() {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/events", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/events", {
         method: "POST",
         body: data,
         headers: { Authorization: `Bearer ${token}` },

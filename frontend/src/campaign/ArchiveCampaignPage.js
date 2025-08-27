@@ -21,7 +21,7 @@ export default function ArchiveCampaignPage({ institutionId: propInstitutionId }
           const token = localStorage.getItem("token");
           if (!token) throw new Error("No token found");
 
-          const res = await fetch("http://localhost:5000/auth/me", {
+          const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -65,7 +65,7 @@ export default function ArchiveCampaignPage({ institutionId: propInstitutionId }
 
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:5000/campaigns?${params.toString()}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns?${params.toString()}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

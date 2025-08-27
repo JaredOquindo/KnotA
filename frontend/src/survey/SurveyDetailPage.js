@@ -20,7 +20,7 @@ export default function SurveyDetailPage() {
   useEffect(() => {
     const fetchSurvey = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/surveys/${id}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/surveys/${id}`);
         if (!res.ok) throw new Error("Failed to load survey");
         const data = await res.json();
         setSurvey(data);
@@ -34,7 +34,7 @@ export default function SurveyDetailPage() {
 
     const fetchSubmissions = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/surveys/${id}/responses`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/surveys/${id}/responses`);
         if (!res.ok) throw new Error("Failed to load submissions");
         const data = await res.json();
         setSubmissions(data);
@@ -74,7 +74,7 @@ export default function SurveyDetailPage() {
         }),
       };
 
-      const res = await fetch(`http://localhost:5000/surveys/${id}/responses`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/surveys/${id}/responses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -102,7 +102,7 @@ export default function SurveyDetailPage() {
 
   const handleSaveEdit = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/surveys/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/surveys/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editSurvey),
@@ -120,7 +120,7 @@ export default function SurveyDetailPage() {
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this survey?")) {
       try {
-        const res = await fetch(`http://localhost:5000/surveys/${id}`, { method: "DELETE" });
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/surveys/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error("Failed to delete survey");
         alert("Survey deleted successfully");
         navigate("/app/survey");
@@ -133,7 +133,7 @@ export default function SurveyDetailPage() {
   const handleClose = async () => {
     if (window.confirm("Are you sure you want to close this survey?")) {
       try {
-        const res = await fetch(`http://localhost:5000/surveys/${id}/close`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/surveys/${id}/close`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
         });
@@ -150,7 +150,7 @@ export default function SurveyDetailPage() {
   const handleDeleteSubmission = async (submissionId) => {
     if (window.confirm("Are you sure you want to delete this submission?")) {
       try {
-        const res = await fetch(`http://localhost:5000/surveys/${id}/responses/${submissionId}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/surveys/${id}/responses/${submissionId}`, {
           method: "DELETE",
         });
         if (!res.ok) throw new Error("Failed to delete submission");
