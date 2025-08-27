@@ -32,7 +32,7 @@ export default function SidebarPage() {
         const token = localStorage.getItem("token"); // token stored on login
         if (!token) throw new Error("No token found");
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me", {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
