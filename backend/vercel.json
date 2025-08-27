@@ -1,19 +1,17 @@
 {
-    "installCommand": "npm install --prefix backend && npm install --prefix frontend",
+    "installCommand": "npm install --legacy-peer-deps",
     "version": 2,
     "builds": [
         {
-        "src": "backend/package.json",
+        "src": "server.js",
         "use": "@vercel/node"
         },
         {
-        "src": "frontend/package.json",
-        "use": "@vercel/static-build",
-        "config": { "distDir": "build" }
+        "src": "src/**/*",
+        "use": "@vercel/static"
         }
     ],
     "routes": [
-        { "src": "/api/(.*)", "dest": "/backend/$1" },
-        { "src": "/(.*)", "dest": "/frontend/$1" }
+        { "src": "/(.*)", "dest": "/" }
     ]
 }
