@@ -28,7 +28,7 @@ const DonationForm = ({ onClose, onSubmit, campaignId }) => {
     };
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${campaignId}/donations`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/campaigns/${campaignId}/donations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

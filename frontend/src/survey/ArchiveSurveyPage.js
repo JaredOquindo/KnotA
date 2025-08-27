@@ -26,7 +26,7 @@ export default function ArchiveSurveyPage({ institutionId: propInstitutionId }) 
         const token = localStorage.getItem("token");
         if (!token) throw new Error("No token found");
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -73,7 +73,7 @@ export default function ArchiveSurveyPage({ institutionId: propInstitutionId }) 
     params.append("limit", SURVEYS_PER_PAGE);
     params.append("institution", institutionId);
 
-    fetch(`${import.meta.env.VITE_API_URL}/surveys?${params.toString()}`)
+    fetch(`${process.env.REACT_APP_API_URL}/surveys?${params.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch surveys");
         return res.json();

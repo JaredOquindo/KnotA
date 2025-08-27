@@ -32,7 +32,7 @@ export default function SidebarPage() {
         const token = localStorage.getItem("token"); // token stored on login
         if (!token) throw new Error("No token found");
 
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -75,7 +75,7 @@ export default function SidebarPage() {
     let intervalId;
     setLoadingFinished(false);
     const fetchEvent = () => {
-      fetch(`${import.meta.env.VITE_API_URL}/events/${match[1]}`)
+      fetch(`${process.env.REACT_APP_API_URL}/events/${match[1]}`)
         .then((res) => (res.ok ? res.json() : Promise.reject()))
         .then((event) => setIsViewingClosedEvent(event.isClosed === true))
         .catch(() => setIsViewingClosedEvent(false))
@@ -92,7 +92,7 @@ export default function SidebarPage() {
       setIsViewingClosedCampaign(false);
       return;
     }
-    fetch(`${import.meta.env.VITE_API_URL}/campaigns/${match[1]}`)
+    fetch(`${process.env.REACT_APP_API_URL}/campaigns/${match[1]}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((campaign) => setIsViewingClosedCampaign(campaign.isClosed === true))
       .catch(() => setIsViewingClosedCampaign(false));
@@ -104,7 +104,7 @@ export default function SidebarPage() {
       setIsViewingClosedSurvey(false);
       return;
     }
-    fetch(`${import.meta.env.VITE_API_URL}/surveys/${match[1]}`)
+    fetch(`${process.env.REACT_APP_API_URL}/surveys/${match[1]}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((survey) => setIsViewingClosedSurvey(survey.status === "closed"))
       .catch(() => setIsViewingClosedSurvey(false));

@@ -50,7 +50,7 @@ export default function EventDetailPage() {
     const fetchEvent = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/events/${id}`, {
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/events/${id}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -84,7 +84,7 @@ export default function EventDetailPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/events/${id}/close`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/events/${id}/close`, {
         method: "PATCH",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -105,7 +105,7 @@ export default function EventDetailPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/events/${id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/events/${id}`, {
         method: "DELETE",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -133,7 +133,7 @@ export default function EventDetailPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/events/${id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/events/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

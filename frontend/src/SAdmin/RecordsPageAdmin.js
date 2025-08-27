@@ -31,7 +31,7 @@ export default function RecordsPageAdmin() {
     params.append("page", currentPage);
     params.append("limit", RECORDS_PER_PAGE);
 
-    fetch(`${import.meta.env.VITE_API_URL}/institutions/approved?${params.toString()}`)
+    fetch(`${process.env.REACT_APP_API_URL}/institutions/approved?${params.toString()}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch records");
         return res.json();
@@ -59,7 +59,7 @@ export default function RecordsPageAdmin() {
   const approveRecord = async (id) => {
     if (!window.confirm("Approve this institution? An email will be sent.")) return;
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/institutions/${id}/approve`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/institutions/${id}/approve`, {
         method: "PATCH",
       });
       if (!res.ok) throw new Error("Failed to approve institution");

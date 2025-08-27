@@ -59,7 +59,7 @@ export default function CampaignDetailPage() {
     setError(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/campaigns/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -97,7 +97,7 @@ export default function CampaignDetailPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}/close`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/campaigns/${id}/close`, {
         method: "PATCH",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -123,7 +123,7 @@ export default function CampaignDetailPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/campaigns/${id}`, {
         method: "DELETE",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -150,7 +150,7 @@ export default function CampaignDetailPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/campaigns/${id}`, {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/campaigns/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

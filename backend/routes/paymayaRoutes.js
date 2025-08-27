@@ -30,9 +30,9 @@ router.post("/create-payment", async (req, res) => {
           value: finalAmount,
         },
         redirectUrl: {
-          success: `${import.meta.env.VITE_API_URL}/paymaya/payment-success?campaignId=${campaignId}&amount=${amount}`,
-          failure: `${import.meta.env.VITE_API_URL}/paymaya/payment-failure?campaignId=${campaignId}`,
-          cancel: `${import.meta.env.VITE_API_URL}/paymaya/payment-cancel?campaignId=${campaignId}`,
+          success: `${process.env.REACT_APP_API_URL}/paymaya/payment-success?campaignId=${campaignId}&amount=${amount}`,
+          failure: `${process.env.REACT_APP_API_URL}/paymaya/payment-failure?campaignId=${campaignId}`,
+          cancel: `${process.env.REACT_APP_API_URL}/paymaya/payment-cancel?campaignId=${campaignId}`,
         },
         requestReferenceNumber: Date.now().toString(),
 
