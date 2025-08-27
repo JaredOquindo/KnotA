@@ -1,17 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { FaRegCalendarAlt, FaUserCircle } from "react-icons/fa";
 import { IoMdMenu } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 import "./TopBar.css";
 
 export default function TopBar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen((prev) => !prev);
-  };
+  const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -19,12 +19,14 @@ export default function TopBar() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Get current date and time
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+  }, []);
+
   const getCurrentDateTime = () => {
     const now = new Date();
     const optionsDate = { month: "long", day: "numeric", year: "numeric" };
@@ -36,6 +38,11 @@ export default function TopBar() {
   };
 
   const { dayOfWeek, formattedDate, formattedTime } = getCurrentDateTime();
+
+  const getFirstName = (fullName) => {
+    if (!fullName) return "";
+    return fullName.split(" ")[0];
+  };
 
   return (
     <div className="topbar-container">
@@ -53,7 +60,7 @@ export default function TopBar() {
       </div>
 
       {/* Profile */}
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative flex items-center space-x-2" ref={dropdownRef}>
         <button
           onClick={toggleDropdown}
           className="flex items-center space-x-2 focus:outline-none profile-box"
@@ -61,14 +68,40 @@ export default function TopBar() {
           <div className="profile-image-circle">
             <FaUserCircle className="text-2xl text-gray-600" />
           </div>
+          {user && (
+            <span className="font-semibold">{getFirstName(user.fullName)}</span>
+          )}
           <IoMdMenu className="text-gray-600 text-2xl" />
         </button>
 
         {isDropdownOpen && (
           <div className="dropdown-menu">
-            <button className="dropdown-item">Profile</button>
-            <button className="dropdown-item">Settings</button>
-            <button className="dropdown-item text-red-500">Logout</button>
+            <button
+              className="dropdown-item"
+              onClick={() => {
+                setIsDropdownOpen(false);
+                navigate("/app/profile");
+              }}
+            >
+              Profile
+            </button>
+            <button
+              className="dropdown-item"
+              onClick={() => setIsDropdownOpen(false)}
+            >
+              Settings
+            </button>
+            <button
+              className="dropdown-item text-red-500"
+              onClick={() => {
+                setIsDropdownOpen(false);
+                localStorage.removeItem("user");
+                localStorage.removeItem("token");
+                navigate("/");
+              }}
+            >
+              Logout
+            </button>
           </div>
         )}
       </div>

@@ -1,20 +1,26 @@
-// routes/surveyRoutes.js
 import express from "express";
 import Survey from "../models/Survey.js";
+import { authMiddleware } from './authRoutes.js'; // Assuming you have an auth middleware
 
 const router = express.Router();
 
 /**
  * Create a new survey
  */
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { title, description, creatorId, targetAudience, questions } = req.body;
+    const { title, description, creatorId, institution, targetAudience, questions } = req.body;
+
+    // Validation for essential fields including 'institution'
+    if (!title || !description || !creatorId || !institution) {
+      return res.status(400).json({ message: "Title, description, creatorId, and institution are required." });
+    }
 
     const newSurvey = new Survey({
       title,
       description,
       creatorId,
+      institution, 
       targetAudience,
       questions,
       isActive: true,
@@ -28,22 +34,30 @@ router.post("/", async (req, res) => {
   }
 });
 
+//---
+
 /**
- * Get all surveys (active or archived)
+ * Get all surveys (active or archived) for a specific institution
  */
 router.get("/", async (req, res) => {
   try {
-    const { isClosed = "false", search = "", page = 1, limit = 10 } = req.query;
+    const { isClosed = "false", search = "", page = 1, limit = 10, institution } = req.query; // Extract 'institution' from query
     const isActive = isClosed === "true" ? false : true;
+
+    // Ensure institution ID is provided to filter results
+    if (!institution) {
+      return res.status(400).json({ message: "Institution ID is required to fetch surveys." });
+    }
 
     const query = {
       isActive,
+      institution: institution, // Filter surveys by the provided institution ID
       title: { $regex: search, $options: "i" },
     };
 
     const surveys = await Survey.find(query)
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .skip((parseInt(page) - 1) * parseInt(limit))
       .limit(parseInt(limit));
 
     const totalCount = await Survey.countDocuments(query);
@@ -54,6 +68,8 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch surveys" });
   }
 });
+
+//---
 
 /**
  * Get single survey
@@ -68,6 +84,8 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch survey" });
   }
 });
+
+//---
 
 /**
  * Get all responses for a survey
@@ -94,6 +112,8 @@ router.get("/:id/responses", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch responses" });
   }
 });
+
+//---
 
 /**
  * Submit a response for a survey
@@ -125,6 +145,8 @@ router.post("/:id/responses", async (req, res) => {
   }
 });
 
+//---
+
 /**
  * Delete a survey
  */
@@ -138,6 +160,8 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: "Failed to delete survey" });
   }
 });
+
+//---
 
 /**
  * Delete a single response from a survey
@@ -165,6 +189,8 @@ router.delete("/:surveyId/responses/:responseId", async (req, res) => {
   }
 });
 
+//---
+
 /**
  * Close a survey
  */
@@ -182,6 +208,8 @@ router.patch("/:id/close", async (req, res) => {
     res.status(500).json({ message: "Failed to close survey" });
   }
 });
+
+//---
 
 /**
  * Update a survey (Edit questions/options/title/description)

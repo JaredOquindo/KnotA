@@ -1,0 +1,238 @@
+/* General container and form styling */
+.institution-registration-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  background-color: #ffffff;
+  font-family: Arial, sans-serif;
+}
+
+/* New wrapper for the two-column layout */
+.main-content-wrapper {
+  display: flex;
+  gap: 30px; /* Space between the two columns */
+  width: 100%;
+  max-width: 1200px; /* Increase max-width to accommodate both columns */
+  border-radius: 12px;
+}
+
+/* Stepper container on the left */
+.stepper-container {
+  padding: 40px;
+  width: 350px; /* Fixed width for the stepper column */
+  box-sizing: border-box;
+  flex-shrink: 0; /* Prevents the stepper from shrinking */
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.stepper-container h2 {
+  text-align: left; /* Align the heading to the left */
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 2em; /* Smaller font size for better fit */
+  font-weight: 700;
+}
+
+/* Form container on the right */
+.register-insti-form {
+  padding: 40px;
+  flex-grow: 1; /* Allows the form to take up remaining space */
+  box-sizing: border-box;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Stepper styling (formerly .progress-bar) */
+.stepper-tracker {
+  display: flex;
+  flex-direction: column; /* Stack the steps vertically */
+  align-items: flex-start; /* Align steps to the left */
+  position: relative;
+  gap: 40px; /* Space between vertical steps */
+}
+
+.stepper-tracker::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px; /* Center the line between circles */
+  width: 4px; /* Vertical line width */
+  height: 100%;
+  background-color: #e0e0e0;
+  transform: translateY(0);
+  z-index: 1;
+}
+
+.stepper-step {
+  display: flex;
+  align-items: center; /* Align circle and text horizontally */
+  position: relative;
+  z-index: 2;
+  text-align: left;
+  flex-direction: row; /* Ensure horizontal layout */
+  gap: 15px; /* Space between circle and text */
+}
+
+.stepper-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #888;
+  border: 4px solid #fff;
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.stepper-text {
+  margin-top: 0;
+  font-size: 1.1em;
+  color: #888;
+  transition: color 0.3s;
+}
+
+.stepper-step.active .stepper-circle {
+  background-color: #f7b733;
+  color: #fff;
+}
+
+.stepper-step.active .stepper-text {
+  color: #f7b733;
+  font-weight: bold;
+}
+
+.stepper-step.completed .stepper-circle {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+/* Form steps and inputs */
+.form-step {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.form-step h3 {
+  text-align: center;
+  color: #555;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+}
+
+.form-step p {
+  text-align: center;
+  color: #777;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+input[type="text1"],
+input[type="email1"],
+input[type="tel"],
+input[type="url"],
+input[type="file"],
+textarea {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+input[type="file"] {
+  border: 2px dashed #ccc;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  color: #888;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  visibility: hidden;
+}
+
+input[type="file"]::before {
+  content: 'Drag and drop files here or browse';
+  display: inline-block;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  outline: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 10pt;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 150px;
+}
+
+/* Button styling */
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  width: 100%; /* Ensures the container spans the full width */
+}
+
+.form-navigation button,
+.form-step button {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.form-navigation button:first-child {
+  background-color: #ccc;
+  color: #333;
+}
+
+.form-navigation button:last-child,
+.form-step button {
+  background-color: #f7b733;
+  color: #fff;
+}
+
+.form-navigation button:first-child:hover {
+  background-color: #bbb;
+}
+
+.form-navigation button:last-child:hover,
+.form-step button:hover {
+  background-color: #e6a72e;
+}
+
+/* Success message styling */
+.form-step h3 + p {
+  margin-top: 20px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

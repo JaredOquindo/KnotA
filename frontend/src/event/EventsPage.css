@@ -109,7 +109,7 @@
 }
 
 .eventCard {
-  height: 350px;
+  height: 400px;
   flex: 0 0 350px;
   display: flex;
   flex-direction: column;
@@ -162,7 +162,7 @@
   color: #ffffff;
   padding: 2px 8px;
   border-radius: 12px;
-  font-size: 10px !important;
+  font-size: 8px !important;
   font-weight: 600;
   user-select: none;
 }
@@ -189,7 +189,7 @@
 }
 
 .eventCardContent h2 {
-  font-size: 12px;
+  font-size: 15px;
   margin: 0.4rem 0;
   white-space: nowrap;
   overflow: hidden;

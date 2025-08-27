@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import "./SurveyDetailPage.css";
 
+// Import the new SurveySummary component
+import SurveySummary from "./SurveySummary";
+
 export default function SurveyDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -11,7 +14,8 @@ export default function SurveyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [submissions, setSubmissions] = useState([]);
   const [editMode, setEditMode] = useState(false);
-  const [selectedSubmission, setSelectedSubmission] = useState(null); // for modal
+  const [selectedSubmission, setSelectedSubmission] = useState(null); // for individual submission modal
+  const [showSummary, setShowSummary] = useState(false); // for the summary graph modal
 
   useEffect(() => {
     const fetchSurvey = async () => {
@@ -83,7 +87,7 @@ export default function SurveyDetailPage() {
       }
 
       alert("Survey submitted successfully!");
-      navigate("/survey");
+      navigate("/app/survey");
     } catch (err) {
       console.error("An error occurred during submission:", err);
       alert("An error occurred. Please try again.");
@@ -119,7 +123,7 @@ export default function SurveyDetailPage() {
         const res = await fetch(`http://localhost:5000/surveys/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error("Failed to delete survey");
         alert("Survey deleted successfully");
-        navigate("/survey");
+        navigate("/app/survey");
       } catch (err) {
         console.error(err);
       }
@@ -135,7 +139,7 @@ export default function SurveyDetailPage() {
         });
         if (!res.ok) throw new Error("Failed to close survey");
         alert("Survey closed and moved to archive successfully");
-        navigate("/survey/archive");
+        navigate("/app/survey/archive");
       } catch (err) {
         console.error(err);
       }
@@ -317,13 +321,17 @@ export default function SurveyDetailPage() {
 
   const openSubmissionModal = (submission) => setSelectedSubmission(submission);
   const closeSubmissionModal = () => setSelectedSubmission(null);
+  const openSummaryPopup = () => setShowSummary(true);
+  const closeSummaryPopup = () => setShowSummary(false);
 
   if (loading) return <p>Loading survey...</p>;
   if (!survey) return <p>Survey not found.</p>;
 
   return (
     <div className="survey-detail-page">
-      <Link to="/survey" className="back-link">⬅ Back to Surveys</Link>
+      <Link to="/app/survey" className="back-link">
+        ⬅ Back to Surveys
+      </Link>
 
       <div className="survey-two-columns">
         <div className="survey-form-wrapper">
@@ -358,7 +366,9 @@ export default function SurveyDetailPage() {
                   {renderQuestionField(q, i)}
                 </div>
               ))}
-              <button type="submit" className="submit-btn">Submit Answers</button>
+              <button type="submit" className="submit-btn">
+                Submit Answers
+              </button>
             </form>
           ) : (
             <div className="survey-form">
@@ -368,8 +378,12 @@ export default function SurveyDetailPage() {
                 </div>
               ))}
               <div className="edit-actions">
-                <button onClick={handleSaveEdit} className="save-btn">Save</button>
-                <button onClick={handleCancelEdit} className="cancel-btn">Cancel</button>
+                <button onClick={handleSaveEdit} className="save-btn">
+                  Save
+                </button>
+                <button onClick={handleCancelEdit} className="cancel-btn">
+                  Cancel
+                </button>
               </div>
             </div>
           )}
@@ -377,7 +391,9 @@ export default function SurveyDetailPage() {
 
         <div className="survey-stats-wrapper">
           <h2>Survey Responses</h2>
-          <p><strong>Total Submissions:</strong> {submissions.length}</p>
+          <p>
+            <strong>Total Submissions:</strong> {submissions.length}
+          </p>
           <ul className="submission-list">
             {submissions.map((s, index) => (
               <li
@@ -392,9 +408,18 @@ export default function SurveyDetailPage() {
           </ul>
 
           <div className="survey-actions">
-            <button className="edit-btn" onClick={handleEdit}>Edit</button>
-            <button className="delete-btn" onClick={handleDelete}>Delete</button>
-            <button className="close-btn" onClick={handleClose}>Close Survey</button>
+            <button className="edit-btn" onClick={handleEdit}>
+              Edit
+            </button>
+            <button className="delete-btn" onClick={handleDelete}>
+              Delete
+            </button>
+            <button className="close-btn" onClick={handleClose}>
+              Close Survey
+            </button>
+            <button className="summary-btn" onClick={openSummaryPopup}>
+              Generate Summary
+            </button>
           </div>
         </div>
       </div>
@@ -406,13 +431,17 @@ export default function SurveyDetailPage() {
               <div className="submission-header">
                 <h3>{survey.title}</h3>
                 <p>{survey.description}</p>
-                <p className="submission-user"><strong>Submitted by:</strong> {selectedSubmission.userName || "Anonymous"}</p>
+                <p className="submission-user">
+                  <strong>Submitted by:</strong> {selectedSubmission.userName || "Anonymous"}
+                </p>
               </div>
               <hr />
               <div className="submission-answers">
                 {selectedSubmission.answers.map((a, i) => (
                   <div key={i} className="submission-answer-item">
-                    <p className="submission-question"><strong>{a.question}</strong></p>
+                    <p className="submission-question">
+                      <strong>{a.question}</strong>
+                    </p>
                     <div className="submission-answer">
                       {Array.isArray(a.answer) ? a.answer.join(", ") : a.answer}
                     </div>
@@ -421,8 +450,35 @@ export default function SurveyDetailPage() {
               </div>
             </div>
             <div className="modal-actions">
-              <button onClick={() => handleDeleteSubmission(selectedSubmission._id)} className="delete-btn">Delete Submission</button>
-              <button onClick={closeSubmissionModal} className="close-modal-btn">Close</button>
+              <button
+                onClick={() => handleDeleteSubmission(selectedSubmission._id)}
+                className="delete-btn"
+              >
+                Delete Submission
+              </button>
+              <button onClick={closeSubmissionModal} className="close-modal-btn">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSummary && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="summary-header">
+              <h3>Survey Summary for "{survey.title}"</h3>
+            </div>
+            <hr />
+            <div className="summary-content">
+              {/* This is where the summary component is rendered */}
+              <SurveySummary questions={survey.questions} submissions={submissions} />
+            </div>
+            <div className="modal-actions">
+              <button onClick={closeSummaryPopup} className="close-modal-btn">
+                Close Summary
+              </button>
             </div>
           </div>
         </div>

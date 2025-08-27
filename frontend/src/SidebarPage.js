@@ -20,32 +20,53 @@ export default function SidebarPage() {
   const [isViewingClosedCampaign, setIsViewingClosedCampaign] = useState(false);
   const [isViewingClosedSurvey, setIsViewingClosedSurvey] = useState(false);
 
+  const [institution, setInstitution] = useState(null);
+  const [userName, setUserName] = useState("Loading...");
+
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  // --- submenu open checks ---
+  // ------------------- FETCH USER DATA -------------------
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem("token"); // token stored on login
+        if (!token) throw new Error("No token found");
+
+        const res = await fetch("http://localhost:5000/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch user data");
+
+        const user = await res.json();
+        setUserName(user.fullName || "Unknown User");
+        setInstitution(user.institution || null); // set full institution object
+      } catch (err) {
+        console.error(err);
+        setUserName("Unknown User");
+        setInstitution(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  // ------------------- SUBMENU LOGIC -------------------
   useEffect(() => {
     setEventsSubmenuOpen(
-      location.pathname.startsWith("/events") || location.pathname === "/add"
+      location.pathname.startsWith("/app/events") || location.pathname === "/app/add"
     );
-  }, [location]);
-
-  useEffect(() => {
     setCampaignsSubmenuOpen(
-      location.pathname.startsWith("/campaigns") ||
-        location.pathname === "/add-campaign"
+      location.pathname.startsWith("/app/campaigns") || location.pathname === "/app/add-campaign"
     );
-  }, [location]);
-
-  useEffect(() => {
     setSurveySubmenuOpen(
-      location.pathname.startsWith("/survey") ||
-        location.pathname === "/add-survey"
+      location.pathname.startsWith("/app/survey") || location.pathname === "/app/add-survey"
     );
   }, [location]);
 
-  // --- closed event/campaign/survey checks ---
+  // ------------------- EVENT/CAMPAIGN/SURVEY CLOSED CHECK -------------------
   useEffect(() => {
-    const match = location.pathname.match(/^\/events\/([^/]+)$/);
+    const match = location.pathname.match(/^\/app\/events\/([^/]+)$/);
     if (!match) {
       setIsViewingClosedEvent(false);
       setLoadingFinished(true);
@@ -66,73 +87,68 @@ export default function SidebarPage() {
   }, [location]);
 
   useEffect(() => {
-    const match = location.pathname.match(/^\/campaigns\/([^/]+)$/);
+    const match = location.pathname.match(/^\/app\/campaigns\/([^/]+)$/);
     if (!match) {
       setIsViewingClosedCampaign(false);
       return;
     }
     fetch(`http://localhost:5000/campaigns/${match[1]}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((campaign) =>
-        setIsViewingClosedCampaign(campaign.isClosed === true)
-      )
+      .then((campaign) => setIsViewingClosedCampaign(campaign.isClosed === true))
       .catch(() => setIsViewingClosedCampaign(false));
   }, [location]);
 
   useEffect(() => {
-    const match = location.pathname.match(/^\/survey\/([^/]+)$/);
+    const match = location.pathname.match(/^\/app\/survey\/([^/]+)$/);
     if (!match) {
       setIsViewingClosedSurvey(false);
       return;
     }
     fetch(`http://localhost:5000/surveys/${match[1]}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((survey) =>
-        setIsViewingClosedSurvey(survey.status === "closed")
-      )
+      .then((survey) => setIsViewingClosedSurvey(survey.status === "closed"))
       .catch(() => setIsViewingClosedSurvey(false));
   }, [location]);
 
-  // --- yellow dot active state ---
+  // ------------------- YELLOW DOT ACTIVE STATE -------------------
   const showYellowDotOnOpenEvents =
     loadingFinished &&
-    (location.pathname === "/events" ||
-      location.pathname === "/add" ||
-      (location.pathname.startsWith("/events") &&
-        !location.pathname.startsWith("/events/archive") &&
+    (location.pathname === "/app/events" ||
+      location.pathname === "/app/add" ||
+      (location.pathname.startsWith("/app/events") &&
+        !location.pathname.startsWith("/app/events/archive") &&
         !isViewingClosedEvent));
 
   const showYellowDotOnArchiveEvents =
     loadingFinished &&
-    (location.pathname.startsWith("/events/archive") || isViewingClosedEvent);
+    (location.pathname.startsWith("/app/events/archive") || isViewingClosedEvent);
 
   const showYellowDotOnActiveCampaigns =
-    location.pathname === "/campaigns" ||
-    location.pathname === "/add-campaign" ||
-    (location.pathname.startsWith("/campaigns") &&
-      !location.pathname.startsWith("/campaigns/archive") &&
+    location.pathname === "/app/campaigns" ||
+    location.pathname === "/app/add-campaign" ||
+    (location.pathname.startsWith("/app/campaigns") &&
+      !location.pathname.startsWith("/app/campaigns/archive") &&
       !isViewingClosedCampaign);
 
   const showYellowDotOnArchiveCampaigns =
-    location.pathname.startsWith("/campaigns/archive") ||
-    isViewingClosedCampaign;
+    location.pathname.startsWith("/app/campaigns/archive") || isViewingClosedCampaign;
 
   const showYellowDotOnActiveSurveys =
-    location.pathname === "/survey" ||
-    location.pathname === "/add-survey" ||
-    (location.pathname.startsWith("/survey") &&
-      !location.pathname.startsWith("/survey/archive") &&
+    location.pathname === "/app/survey" ||
+    location.pathname === "/app/add-survey" ||
+    (location.pathname.startsWith("/app/survey") &&
+      !location.pathname.startsWith("/app/survey/archive") &&
       !isViewingClosedSurvey);
 
   const showYellowDotOnArchiveSurveys =
-    location.pathname.startsWith("/survey/archive") || isViewingClosedSurvey;
+    location.pathname.startsWith("/app/survey/archive") || isViewingClosedSurvey;
 
   const handleMenuClick = (path) => {
     setIsOpen(false);
     if (path === "events") setEventsSubmenuOpen((prev) => !prev);
     else if (path === "campaigns") setCampaignsSubmenuOpen((prev) => !prev);
     else if (path === "survey") setSurveySubmenuOpen((prev) => !prev);
-    else navigate(`/${path}`);
+    else navigate(`/app/${path}`);
   };
 
   return (
@@ -145,35 +161,34 @@ export default function SidebarPage() {
         {/* Top box with logo and school name */}
         <div className="sidebar-header">
           <img
-            src="/Ateneo.png"
+            src={institution?.institutionLogo || "/Ateneo.png"}
             alt="Logo"
             className="sidebar-logo-img"
           />
-          <span className="sidebar-school-name">Ateneo De Naga University</span>
+          <div className="sidebar-school-name">
+            {institution?.officialInstitutionName || "No Institution"}
+          </div>
         </div>
 
+        {/* Navigation */}
         <nav>
           <ul>
             <li
-              className={location.pathname === "/dashboard" ? "active" : ""}
+              className={location.pathname === "/app/dashboard" ? "active" : ""}
               onClick={() => handleMenuClick("dashboard")}
             >
-              <Link to="/dashboard">
-                <span className="menu-icon">
-                  <RiDashboardFill />
-                </span>
+              <Link to="/app/dashboard">
+                <span className="menu-icon"><RiDashboardFill /></span>
                 <span className="menu-text">Dashboard</span>
               </Link>
             </li>
 
             <li
-              className={location.pathname === "/records" ? "active" : ""}
+              className={location.pathname === "/app/records" ? "active" : ""}
               onClick={() => handleMenuClick("records")}
             >
-              <Link to="/records">
-                <span className="menu-icon">
-                  <IoPeopleCircleOutline />
-                </span>
+              <Link to="/app/records">
+                <span className="menu-icon"><IoPeopleCircleOutline /></span>
                 <span className="menu-text">Records</span>
               </Link>
             </li>
@@ -185,44 +200,26 @@ export default function SidebarPage() {
                 onClick={() => handleMenuClick("campaigns")}
                 style={{ cursor: "pointer", padding: "1px 20px" }}
               >
-                <span className="menu-icon">
-                  <GiReceiveMoney />
-                </span>
+                <span className="menu-icon"><GiReceiveMoney /></span>
                 <span className="menu-text">Campaigns</span>
               </div>
-              <div
-                className={`submenu-wrapper ${
-                  campaignsSubmenuOpen ? "open" : ""
-                }`}
-              >
+              <div className={`submenu-wrapper ${campaignsSubmenuOpen ? "open" : ""}`}>
                 <ul className="submenu">
                   <li onClick={() => setIsOpen(false)}>
                     <Link
-                      to="/campaigns"
-                      className={
-                        showYellowDotOnActiveCampaigns ? "active-submenu" : ""
-                      }
+                      to="/app/campaigns"
+                      className={showYellowDotOnActiveCampaigns ? "active-submenu" : ""}
                     >
-                      <span
-                        className={`yellow-dot ${
-                          showYellowDotOnActiveCampaigns ? "" : "hidden"
-                        }`}
-                      ></span>
+                      <span className={`yellow-dot ${showYellowDotOnActiveCampaigns ? "" : "hidden"}`}></span>
                       Active Campaigns
                     </Link>
                   </li>
                   <li onClick={() => setIsOpen(false)}>
                     <Link
-                      to="/campaigns/archive"
-                      className={
-                        showYellowDotOnArchiveCampaigns ? "active-submenu" : ""
-                      }
+                      to="/app/campaigns/archive"
+                      className={showYellowDotOnArchiveCampaigns ? "active-submenu" : ""}
                     >
-                      <span
-                        className={`yellow-dot ${
-                          showYellowDotOnArchiveCampaigns ? "" : "hidden"
-                        }`}
-                      ></span>
+                      <span className={`yellow-dot ${showYellowDotOnArchiveCampaigns ? "" : "hidden"}`}></span>
                       Archive
                     </Link>
                   </li>
@@ -237,44 +234,26 @@ export default function SidebarPage() {
                 onClick={() => handleMenuClick("events")}
                 style={{ cursor: "pointer", padding: "1px 20px" }}
               >
-                <span className="menu-icon">
-                  <IoCalendar />
-                </span>
+                <span className="menu-icon"><IoCalendar /></span>
                 <span className="menu-text">Events</span>
               </div>
-              <div
-                className={`submenu-wrapper ${
-                  eventsSubmenuOpen ? "open" : ""
-                }`}
-              >
+              <div className={`submenu-wrapper ${eventsSubmenuOpen ? "open" : ""}`}>
                 <ul className="submenu">
                   <li onClick={() => setIsOpen(false)}>
                     <Link
-                      to="/events"
-                      className={
-                        showYellowDotOnOpenEvents ? "active-submenu" : ""
-                      }
+                      to="/app/events"
+                      className={showYellowDotOnOpenEvents ? "active-submenu" : ""}
                     >
-                      <span
-                        className={`yellow-dot ${
-                          showYellowDotOnOpenEvents ? "" : "hidden"
-                        }`}
-                      ></span>
+                      <span className={`yellow-dot ${showYellowDotOnOpenEvents ? "" : "hidden"}`}></span>
                       Open Events
                     </Link>
                   </li>
                   <li onClick={() => setIsOpen(false)}>
                     <Link
-                      to="/events/archive"
-                      className={
-                        showYellowDotOnArchiveEvents ? "active-submenu" : ""
-                      }
+                      to="/app/events/archive"
+                      className={showYellowDotOnArchiveEvents ? "active-submenu" : ""}
                     >
-                      <span
-                        className={`yellow-dot ${
-                          showYellowDotOnArchiveEvents ? "" : "hidden"
-                        }`}
-                      ></span>
+                      <span className={`yellow-dot ${showYellowDotOnArchiveEvents ? "" : "hidden"}`}></span>
                       Archive
                     </Link>
                   </li>
@@ -289,44 +268,26 @@ export default function SidebarPage() {
                 onClick={() => handleMenuClick("survey")}
                 style={{ cursor: "pointer", padding: "1px 20px" }}
               >
-                <span className="menu-icon">
-                  <RiSurveyFill />
-                </span>
+                <span className="menu-icon"><RiSurveyFill /></span>
                 <span className="menu-text">Survey</span>
               </div>
-              <div
-                className={`submenu-wrapper ${
-                  surveySubmenuOpen ? "open" : ""
-                }`}
-              >
+              <div className={`submenu-wrapper ${surveySubmenuOpen ? "open" : ""}`}>
                 <ul className="submenu">
                   <li onClick={() => setIsOpen(false)}>
                     <Link
-                      to="/survey"
-                      className={
-                        showYellowDotOnActiveSurveys ? "active-submenu" : ""
-                      }
+                      to="/app/survey"
+                      className={showYellowDotOnActiveSurveys ? "active-submenu" : ""}
                     >
-                      <span
-                        className={`yellow-dot ${
-                          showYellowDotOnActiveSurveys ? "" : "hidden"
-                        }`}
-                      ></span>
+                      <span className={`yellow-dot ${showYellowDotOnActiveSurveys ? "" : "hidden"}`}></span>
                       Active Surveys
                     </Link>
                   </li>
                   <li onClick={() => setIsOpen(false)}>
                     <Link
-                      to="/survey/archive"
-                      className={
-                        showYellowDotOnArchiveSurveys ? "active-submenu" : ""
-                      }
+                      to="/app/survey/archive"
+                      className={showYellowDotOnArchiveSurveys ? "active-submenu" : ""}
                     >
-                      <span
-                        className={`yellow-dot ${
-                          showYellowDotOnArchiveSurveys ? "" : "hidden"
-                        }`}
-                      ></span>
+                      <span className={`yellow-dot ${showYellowDotOnArchiveSurveys ? "" : "hidden"}`}></span>
                       Archive
                     </Link>
                   </li>
@@ -335,13 +296,11 @@ export default function SidebarPage() {
             </li>
 
             <li
-              className={location.pathname === "/news" ? "active" : ""}
+              className={location.pathname === "/app/news" ? "active" : ""}
               onClick={() => handleMenuClick("news")}
             >
-              <Link to="/news">
-                <span className="menu-icon">
-                  <FaNewspaper />
-                </span>
+              <Link to="/app/news">
+                <span className="menu-icon"><FaNewspaper /></span>
                 <span className="menu-text">News</span>
               </Link>
             </li>
@@ -354,7 +313,7 @@ export default function SidebarPage() {
         </div>
       </aside>
 
-      {/* Main content with TopBar */}
+      {/* Main content */}
       <main className="content relative">
         <TopBar />
         <div className="pt-20 px-4">

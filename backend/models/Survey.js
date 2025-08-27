@@ -1,4 +1,3 @@
-// models/Survey.js
 import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
@@ -60,6 +59,8 @@ const SurveySchema = new Schema(
     targetAudience: { type: String },
     questions: [QuestionSchema],
     responses: [ResponseSchema],
+    // FIXED: Added 'institution' to the schema
+    institution: { type: Schema.Types.ObjectId, ref: "Institution", required: true }, 
   },
   { timestamps: true }
 );

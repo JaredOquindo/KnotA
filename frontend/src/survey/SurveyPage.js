@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { HiOutlineNewspaper } from "react-icons/hi"; // Icon
+import { HiOutlineNewspaper } from "react-icons/hi";
 import { IoPersonSharp } from "react-icons/io5";
 
+export default function SurveyPage({ showClosed = false, institutionId: propInstitutionId }) {
+  const SURVEYS_PER_PAGE = 6;
 
-export default function SurveyPage({ showClosed = false }) {
-  const SURVEYS_PER_PAGE = 6; // 2 rows × 3 cards
-
+  const [institutionId, setInstitutionId] = useState(propInstitutionId || null);
   const [surveys, setSurveys] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -14,7 +14,42 @@ export default function SurveyPage({ showClosed = false }) {
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState(null);
 
-  // Debounce search
+  // Fetch logged-in user's institution if no propInstitutionId is provided
+  useEffect(() => {
+    if (propInstitutionId) {
+      setInstitutionId(propInstitutionId);
+      return;
+    }
+
+    const fetchInstitution = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No token found");
+
+        const res = await fetch("http://localhost:5000/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Failed to get user");
+
+        const data = await res.json();
+        if (!data.institution?._id)
+          throw new Error("No institution found for this user");
+
+        setInstitutionId(data.institution._id);
+      } catch (err) {
+        console.error(err);
+        setError("Could not fetch institution.");
+      }
+    };
+    
+    // Only fetch if institutionId isn't already set
+    if (!institutionId) {
+        fetchInstitution();
+    }
+  }, [propInstitutionId, institutionId]);
+
+  // Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm.trim());
@@ -23,8 +58,14 @@ export default function SurveyPage({ showClosed = false }) {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Fetch surveys
+  // Fetch surveys using useCallback to prevent infinite loops
   const fetchSurveys = useCallback(() => {
+    if (!institutionId) {
+      console.log("Waiting for institutionId...");
+      setSurveys(null); // Ensure loading state is shown while waiting
+      return;
+    }
+
     setSurveys(null);
     setError(null);
 
@@ -33,6 +74,7 @@ export default function SurveyPage({ showClosed = false }) {
     if (debouncedSearchTerm) params.append("search", debouncedSearchTerm);
     params.append("page", currentPage);
     params.append("limit", SURVEYS_PER_PAGE);
+    params.append("institution", institutionId); // This is the crucial part
 
     fetch(`http://localhost:5000/surveys?${params.toString()}`)
       .then((res) => {
@@ -49,7 +91,7 @@ export default function SurveyPage({ showClosed = false }) {
         setSurveys([]);
         setTotalCount(0);
       });
-  }, [showClosed, debouncedSearchTerm, currentPage]);
+  }, [showClosed, debouncedSearchTerm, currentPage, institutionId]);
 
   useEffect(() => {
     fetchSurveys();
@@ -147,7 +189,7 @@ export default function SurveyPage({ showClosed = false }) {
           {surveys.map((survey) => (
             <Link
               key={survey._id}
-              to={`/survey/${survey._id}`}
+              to={`/app/survey/${survey._id}`}
               className="eventCard"
               style={{
                 height: "180px",
@@ -249,7 +291,7 @@ export default function SurveyPage({ showClosed = false }) {
         </div>
       </div>
 
-      <Link to="/survey/add" className="addButton" aria-label="Add Survey">
+      <Link to="/app/survey/add" className="addButton" aria-label="Add Survey">
         <span className="plus">+</span>
         <span className="text">Add Survey</span>
       </Link>

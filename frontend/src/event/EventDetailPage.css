@@ -171,3 +171,43 @@
   background-color: rgba(0,0,0,0.05);
   border-radius: 4px;
 }
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.participant-box {
+  border: 2px solid #333; /* Strong black border */
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #f0f0f0; /* Light gray background */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Visible shadow */
+  transition: transform 0.2s ease-in-out;
+}
+
+.participant-box:hover {
+  transform: translateY(-5px); /* Lift effect on hover */
+}
+
+.participant-info {
+  margin-bottom: 8px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.participant-info strong {
+  display: block;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 4px;
+}

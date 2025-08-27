@@ -1,18 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { HiOutlineNewspaper } from "react-icons/hi"; // Icon
+import { HiOutlineNewspaper } from "react-icons/hi";
 import { IoPersonSharp } from "react-icons/io5";
 
+export default function ArchiveSurveyPage({ institutionId: propInstitutionId }) {
+  const SURVEYS_PER_PAGE = 6;
 
-export default function ArchiveSurveyPage() {
-  const SURVEYS_PER_PAGE = 6; // 2 rows × 3 cards
-
+  const [institutionId, setInstitutionId] = useState(propInstitutionId || null);
   const [surveys, setSurveys] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState(null);
+
+  // Fetch logged-in user's institution if no propInstitutionId is provided
+  useEffect(() => {
+    if (propInstitutionId) {
+      setInstitutionId(propInstitutionId);
+      return;
+    }
+
+    const fetchInstitution = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No token found");
+
+        const res = await fetch("http://localhost:5000/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Failed to get user");
+
+        const data = await res.json();
+        if (!data.institution?._id)
+          throw new Error("No institution found for this user");
+
+        setInstitutionId(data.institution._id);
+      } catch (err) {
+        console.error(err);
+        setError("Could not fetch institution.");
+      }
+    };
+
+    fetchInstitution();
+  }, [propInstitutionId]); // Depend on the prop, not on the state
 
   // Debounce search
   useEffect(() => {
@@ -25,6 +57,12 @@ export default function ArchiveSurveyPage() {
 
   // Fetch archived surveys
   const fetchSurveys = useCallback(() => {
+    if (!institutionId) {
+      console.log("Waiting for institutionId...");
+      setSurveys(null); // Ensure loading state is shown
+      return;
+    }
+
     setSurveys(null);
     setError(null);
 
@@ -33,6 +71,7 @@ export default function ArchiveSurveyPage() {
     if (debouncedSearchTerm) params.append("search", debouncedSearchTerm);
     params.append("page", currentPage);
     params.append("limit", SURVEYS_PER_PAGE);
+    params.append("institution", institutionId);
 
     fetch(`http://localhost:5000/surveys?${params.toString()}`)
       .then((res) => {
@@ -49,7 +88,7 @@ export default function ArchiveSurveyPage() {
         setSurveys([]);
         setTotalCount(0);
       });
-  }, [debouncedSearchTerm, currentPage]);
+  }, [debouncedSearchTerm, currentPage, institutionId]);
 
   useEffect(() => {
     fetchSurveys();
@@ -96,7 +135,11 @@ export default function ArchiveSurveyPage() {
       {surveys === null ? (
         <div
           className="eventsList"
-          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "15px" }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "15px",
+          }}
         >
           {[...Array(SURVEYS_PER_PAGE)].map((_, idx) => (
             <SkeletonCard key={idx} />
@@ -127,7 +170,11 @@ export default function ArchiveSurveyPage() {
       ) : (
         <div
           className="eventsList"
-          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "15px" }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "15px",
+          }}
         >
           {surveys.map((survey) => (
             <Link

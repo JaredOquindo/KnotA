@@ -3,28 +3,62 @@ import { Link } from "react-router-dom";
 import { MdLockOpen, MdLockOutline as MdLockClosed } from "react-icons/md";
 import "./EventsPage.css";
 
-export default function EventsPage({ showClosed = false }) {
+export default function EventsPage({ showClosed = false, institutionId: propInstitutionId }) {
   const EVENTS_PER_PAGE = 3;
 
-  const [events, setEvents] = useState(null); // null means loading
+  const [institutionId, setInstitutionId] = useState(propInstitutionId || null);
+  const [events, setEvents] = useState(null); // null = loading
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState(null);
 
-  // Debounce search input (400ms delay)
+  // Fetch logged-in user's institution if no propInstitutionId
+  useEffect(() => {
+    if (!propInstitutionId && !institutionId) {
+      const fetchInstitution = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) throw new Error("No token found");
+
+          const res = await fetch("http://localhost:5000/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!res.ok) throw new Error("Failed to get user");
+
+          const data = await res.json();
+
+          if (!data.institution?._id) throw new Error("No institution found for this user");
+
+          setInstitutionId(data.institution._id);
+        } catch (err) {
+          console.error(err);
+          setError("Could not fetch institution.");
+        }
+      };
+      fetchInstitution();
+    }
+  }, [propInstitutionId, institutionId]);
+
+  // Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm.trim());
       setCurrentPage(1);
     }, 400);
-
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Fetch events from backend
-  const fetchEvents = useCallback(() => {
+  // Fetch events
+  const fetchEvents = useCallback(async () => {
+    if (!institutionId) {
+      console.log("Waiting for institutionId...");
+      return;
+    }
+
+    console.log("Fetching events for institution:", institutionId);
     setEvents(null);
     setError(null);
 
@@ -33,34 +67,40 @@ export default function EventsPage({ showClosed = false }) {
     if (debouncedSearchTerm) params.append("search", debouncedSearchTerm);
     params.append("page", currentPage);
     params.append("limit", EVENTS_PER_PAGE);
+    params.append("institution", institutionId);
 
-    fetch(`http://localhost:5000/events?${params.toString()}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch events");
-        return res.json();
-      })
-      .then((data) => {
-        setEvents(data.events);
-        setTotalCount(data.totalCount);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("Failed to load events.");
-        setEvents([]);
-        setTotalCount(0);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`http://localhost:5000/events?${params.toString()}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-  }, [showClosed, debouncedSearchTerm, currentPage]);
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setEvents(data.events);
+      setTotalCount(data.totalCount);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load events.");
+      setEvents([]);
+      setTotalCount(0);
+    }
+  }, [showClosed, debouncedSearchTerm, currentPage, institutionId]);
 
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / EVENTS_PER_PAGE));
-
   const goToPrev = () => setCurrentPage((p) => Math.max(1, p - 1));
   const goToNext = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
 
-  // Skeleton card
+  const getBase64Image = (imgString) => {
+    if (!imgString) return null;
+    if (imgString.startsWith("http") || imgString.startsWith("data:image")) return imgString;
+    return `data:image/png;base64,${imgString}`;
+  };
+
   const SkeletonCard = () => (
     <div className="eventCard skeletonCard" aria-busy="true" aria-label="Loading event">
       <div className="eventCardContent">
@@ -104,10 +144,7 @@ export default function EventsPage({ showClosed = false }) {
       ) : error ? (
         <p style={{ color: "red" }}>{error}</p>
       ) : events.length === 0 ? (
-        <div
-          className="eventsList"
-          style={{ justifyContent: "center", position: "relative" }}
-        >
+        <div className="eventsList" style={{ justifyContent: "center", position: "relative" }}>
           <p
             style={{
               position: "absolute",
@@ -122,47 +159,18 @@ export default function EventsPage({ showClosed = false }) {
           >
             {showClosed ? "No archived events found." : "No open events found."}
           </p>
-          <div
-            className="eventCard"
-            style={{
-              visibility: "hidden",
-              pointerEvents: "none",
-              userSelect: "none",
-            }}
-          >
-            <div className="eventCardContent">
-              <div
-                style={{
-                  height: "200px",
-                  backgroundColor: "#eee",
-                  borderRadius: 10,
-                  marginBottom: 8,
-                }}
-              />
-              <div className="keyTermsDatesContainer" />
-              <div
-                style={{ height: "1.5rem", marginBottom: "0.5rem" }}
-                aria-hidden="true"
-              />
-              <p style={{ height: "3rem" }} aria-hidden="true" />
-              <div className="eventFooter" style={{ height: "1.5rem" }} />
-            </div>
-          </div>
         </div>
       ) : (
         <div className="eventsList">
           {events.map((event) => (
-            <Link key={event._id} to={`/events/${event._id}`} className="eventCard">
+            <Link key={event._id} to={`/app/events/${event._id}`} className="eventCard">
               <div className="eventCardContent">
                 {event.pictures && event.pictures.length > 0 ? (
                   <img
-                    src={event.pictures[0]}
+                    src={getBase64Image(event.pictures[0])}
                     alt={event.title}
                     className="eventImage"
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      console.warn("Failed to load image:", e.target.src);
-                    }}
+                    onError={(e) => (e.target.style.display = "none")}
                   />
                 ) : (
                   <div
@@ -185,9 +193,7 @@ export default function EventsPage({ showClosed = false }) {
                   {event.keyTerms && event.keyTerms.length > 0 ? (
                     <div className="keyTermsContainer">
                       {event.keyTerms.map((term, idx) => (
-                        <span key={idx} className="keyTerm">
-                          {term}
-                        </span>
+                        <span key={idx} className="keyTerm">{term}</span>
                       ))}
                     </div>
                   ) : (
@@ -195,12 +201,8 @@ export default function EventsPage({ showClosed = false }) {
                   )}
 
                   <div className="datesContainer">
-                    <p>
-                      <b>Start:</b> {new Date(event.startDate).toLocaleDateString()}
-                    </p>
-                    <p>
-                      <b>End:</b> {new Date(event.endDate).toLocaleDateString()}
-                    </p>
+                    <p><b>Start:</b> {new Date(event.startDate).toLocaleDateString()}</p>
+                    <p><b>End:</b> {new Date(event.endDate).toLocaleDateString()}</p>
                   </div>
                 </div>
 
@@ -213,7 +215,6 @@ export default function EventsPage({ showClosed = false }) {
                   ) : (
                     <MdLockOpen style={{ color: "green", fontSize: "1.2rem" }} />
                   )}
-                  {" "}
                 </div>
               </div>
             </Link>
@@ -223,36 +224,22 @@ export default function EventsPage({ showClosed = false }) {
 
       <div className="pagination-bar">
         <span className="pagination-info">
-          {totalCount === 0
-            ? 0
-            : (currentPage - 1) * EVENTS_PER_PAGE + 1}{" "}
+          {totalCount === 0 ? 0 : (currentPage - 1) * EVENTS_PER_PAGE + 1}{" "}
           to {Math.min(currentPage * EVENTS_PER_PAGE, totalCount)} of {totalCount}
         </span>
         <div className="pagination-controls">
-          <button
-            onClick={goToPrev}
-            disabled={currentPage === 1}
-            className="page-btn"
-          >
-            &lt;
-          </button>
-          <span className="page-text">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={goToNext}
-            disabled={currentPage === totalPages}
-            className="page-btn"
-          >
-            &gt;
-          </button>
+          <button onClick={goToPrev} disabled={currentPage === 1} className="page-btn">&lt;</button>
+          <span className="page-text">Page {currentPage} of {totalPages}</span>
+          <button onClick={goToNext} disabled={currentPage === totalPages} className="page-btn">&gt;</button>
         </div>
       </div>
 
-      <Link to="/add" className="addButton" aria-label="Add Event">
-        <span className="plus">+</span>
-        <span className="text">Add Event</span>
-      </Link>
+      {!showClosed && (
+        <Link to="/app/add" className="addButton" aria-label="Add Event">
+          <span className="plus">+</span>
+          <span className="text">Add Event</span>
+        </Link>
+      )}
     </div>
   );
 }

@@ -1,10 +1,15 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./AddEventPage.css";
 
-
-
 export default function AddEventPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Institution ID may come from navigation or backend
+  const [institutionId, setInstitutionId] = useState(location.state?.institutionId || null);
+  const [loadingInstitution, setLoadingInstitution] = useState(!institutionId);
+
   const [formData, setFormData] = useState({
     title: "",
     location: "",
@@ -13,25 +18,54 @@ export default function AddEventPage() {
     description: "",
   });
 
-  const [keyTerms, setKeyTerms] = useState([]); // array of tags
-  const [currentTerm, setCurrentTerm] = useState(""); // current input
-  const [image, setImage] = useState(null); // uploaded image
-  const navigate = useNavigate();
+  const [keyTerms, setKeyTerms] = useState([]);
+  const [currentTerm, setCurrentTerm] = useState("");
+  const [images, setImages] = useState([]);
+
+  // Fetch logged-in user's institution if missing
+  useEffect(() => {
+    const fetchInstitution = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          alert("You are not logged in");
+          setLoadingInstitution(false);
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/institutions/my-institution", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const data = await res.json();
+        console.log("Institution fetch response:", res.status, data);
+
+        if (res.ok && data._id) {
+          setInstitutionId(data._id);
+        } else {
+          alert(data.message || "No institution associated with your account");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to fetch institution");
+      } finally {
+        setLoadingInstitution(false);
+      }
+    };
+
+    if (!institutionId) fetchInstitution();
+  }, [institutionId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleKeyTermChange = (e) => {
-    setCurrentTerm(e.target.value);
-  };
+  const handleKeyTermChange = (e) => setCurrentTerm(e.target.value);
 
   const handleAddTerm = () => {
     const term = currentTerm.trim();
-    if (term && !keyTerms.includes(term)) {
-      setKeyTerms([...keyTerms, term]);
-    }
+    if (term && !keyTerms.includes(term)) setKeyTerms([...keyTerms, term]);
     setCurrentTerm("");
   };
 
@@ -40,22 +74,21 @@ export default function AddEventPage() {
   };
 
   const handleImageUpload = (file) => {
-    setImage(file);
+    if (file) setImages([file]);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) handleImageUpload(file);
+    handleImageUpload(e.dataTransfer.files[0]);
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) handleImageUpload(file);
+    handleImageUpload(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!institutionId) return alert("Institution ID is missing!");
 
     const data = new FormData();
     data.append("title", formData.title);
@@ -64,18 +97,27 @@ export default function AddEventPage() {
     data.append("endDate", formData.endDate);
     data.append("description", formData.description);
     data.append("keyTerms", JSON.stringify(keyTerms));
-    if (image) data.append("image", image);
+    data.append("institution", institutionId);
+    images.forEach((img) => data.append("pictures", img));
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You are not logged in");
+        return;
+      }
+
       const res = await fetch("http://localhost:5000/events", {
         method: "POST",
         body: data,
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (res.ok) {
-        navigate("/events");
-      } else {
-        alert("Failed to create event");
+      if (res.ok) navigate("/app/events");
+      else {
+        const errData = await res.json();
+        console.error("Failed to create event:", errData);
+        alert(errData.message || "Failed to create event");
       }
     } catch (err) {
       console.error(err);
@@ -83,9 +125,11 @@ export default function AddEventPage() {
     }
   };
 
+  if (loadingInstitution) return <p>Loading institution data...</p>;
+
   return (
     <div className="add-event-container">
-      <Link to="/events">⬅ Back to Events</Link>
+      <Link to="/app/events">⬅ Back to Events</Link>
       <h1>Add Event</h1>
       <form onSubmit={handleSubmit}>
         <div className="left-column">
@@ -127,17 +171,15 @@ export default function AddEventPage() {
             maxLength={300}
             required
           />
-
-          {/* Image Upload Box at the bottom */}
           <div
             className="image-upload-box"
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
             onClick={() => document.getElementById("imageInput").click()}
           >
-            {image ? (
+            {images[0] ? (
               <img
-                src={URL.createObjectURL(image)}
+                src={URL.createObjectURL(images[0])}
                 alt="Preview"
                 className="image-preview"
               />
@@ -155,7 +197,6 @@ export default function AddEventPage() {
         </div>
 
         <div className="right-column">
-          {/* Key Terms Input */}
           <div className="key-terms-input">
             <input
               type="text"

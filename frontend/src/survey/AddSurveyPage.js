@@ -1,19 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./AddSurveyPage.css"; // CSS import is restored to a separate file
+import "./AddSurveyPage.css";
 import { FiDelete } from "react-icons/fi";
-
+import { IoPersonSharp } from "react-icons/io5";
 
 export default function SurveyCreatorPage() {
   const navigate = useNavigate();
 
+  const [institutionId, setInstitutionId] = useState(null);
+  const [creatorId, setCreatorId] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     targetAudience: "",
-    creatorId: "64f9e1a2b7f9c1234567890a",
   });
-
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState({
     text: "",
@@ -21,8 +21,39 @@ export default function SurveyCreatorPage() {
     required: false,
     options: [],
   });
-
   const [currentOption, setCurrentOption] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch logged-in user's institution ID and creator ID on component mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No token found");
+
+        const res = await fetch("http://localhost:5000/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("Failed to get user data");
+
+        const data = await res.json();
+        if (!data.institution?._id)
+          throw new Error("No institution found for this user");
+        if (!data._id) throw new Error("Could not find user ID");
+
+        setInstitutionId(data.institution._id);
+        setCreatorId(data._id);
+      } catch (err) {
+        console.error(err);
+        setError("Could not fetch user information. Please log in again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUserData();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,33 +97,52 @@ export default function SurveyCreatorPage() {
     }
   };
 
-  // Function to remove a question from the preview
   const handleRemovePreviewQuestion = (indexToRemove) => {
     setQuestions((prev) => prev.filter((_, i) => i !== indexToRemove));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { ...formData, questions };
+    if (!institutionId || !creatorId) {
+      setError("Cannot create survey. Missing institution or creator ID.");
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      questions,
+      institution: institutionId,
+      creatorId: creatorId, // FIXED: Changed from 'creator' to 'creatorId'
+    };
+
     try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not authenticated.");
+
       const res = await fetch("http://localhost:5000/surveys", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
+
       if (res.ok) {
         const newSurvey = await res.json();
         console.log("Survey created:", newSurvey);
-        navigate("/survey");
+        navigate("/app/survey");
       } else {
-        console.error("Failed to create survey");
+        const errorData = await res.json();
+        console.error("Failed to create survey:", errorData);
+        setError(errorData.message || "Failed to create survey.");
       }
     } catch (err) {
       console.error(err);
+      setError("An error occurred. Please try again.");
     }
   };
 
-  // Helper to render question specific content in preview
   const renderQuestionPreviewContent = (question) => {
     switch (question.type) {
       case "multiple-choice":
@@ -106,7 +156,7 @@ export default function SurveyCreatorPage() {
                   <input
                     type={question.type === "multiple-choice" ? "radio" : "checkbox"}
                     name={`preview-question-${question.text}`}
-                    disabled // Disable for preview
+                    disabled
                   />
                   <label>{opt.text}</label>
                 </div>
@@ -159,19 +209,20 @@ export default function SurveyCreatorPage() {
         return (
           <div className="preview-generic-placeholder">
             <p>Type: {question.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</p>
-            {/* Keeping a simple placeholder for other types */}
             <div className="preview-input-placeholder"></div>
           </div>
         );
     }
   };
 
+  if (loading) return <p>Loading user data...</p>;
+  if (error) return <p className="error-message">{error}</p>;
+
   return (
     <div className="survey-creator-page">
-      <Link to="/survey">⬅ Back to Surveys</Link>
+      <Link to="/app/survey">⬅ Back to Surveys</Link>
       <h1>Create Survey</h1>
       <form onSubmit={handleSubmit}>
-        {/* Left column */}
         <div className="left-column">
           <div className="survey-details">
             <input
@@ -199,11 +250,13 @@ export default function SurveyCreatorPage() {
 
           <div className="preview-questions-box">
             <h2>Preview Questions</h2>
-            <div className="preview-question-list"> {/* Container for question cards, handles spacing */}
+            <div className="preview-question-list">
               {questions.map((q, i) => (
                 <div key={i} className="preview-question-card">
-                  <h3>{q.text} {q.required && <span className="required-star">*</span>}</h3>
-                  {renderQuestionPreviewContent(q)} {/* Dynamic content */}
+                  <h3>
+                    {q.text} {q.required && <span className="required-star">*</span>}
+                  </h3>
+                  {renderQuestionPreviewContent(q)}
                   <button
                     type="button"
                     className="remove-preview-question-btn"
@@ -220,26 +273,20 @@ export default function SurveyCreatorPage() {
           </div>
         </div>
 
-        {/* Right column */}
         <div className="right-column">
-          <button type="submit" className="submit-survey-btn">
+          <button type="submit" className="submit-survey-btn" disabled={!institutionId || !creatorId}>
             Submit Survey
           </button>
-
           <div className="survey-creator-container">
             <h2>Add Questions</h2>
-
-            {/* Question text input changed to textarea */}
             <textarea
               name="text"
               placeholder="Question text"
               value={currentQuestion.text}
               onChange={handleQuestionChange}
               required
-              className="survey-question" /* Added class for styling */
+              className="survey-question"
             />
-
-            {/* Dropdown + required checkbox in same row */}
             <div className="dropdown-required-row">
               <select
                 name="type"
@@ -254,9 +301,7 @@ export default function SurveyCreatorPage() {
                 <option value="checkbox">Checkbox</option>
                 <option value="matrix">Matrix</option>
                 <option value="ranking">Ranking</option>
-                <option value="semantic-differential">
-                  Semantic Differential
-                </option>
+                <option value="semantic-differential">Semantic Differential</option>
                 <option value="demographic">Demographic</option>
               </select>
               <label className="checkbox-group">
@@ -270,17 +315,15 @@ export default function SurveyCreatorPage() {
               </label>
             </div>
 
-            {/* Options section */}
             {(currentQuestion.type === "multiple-choice" ||
               currentQuestion.type === "dropdown" ||
               currentQuestion.type === "checkbox") && (
               <div className="options-section">
-                {/* Changed input to textarea for option text */}
                 <textarea
                   placeholder="Option text"
                   value={currentOption}
                   onChange={(e) => setCurrentOption(e.target.value)}
-                  className="option-text-textarea" /* Added class for styling */
+                  className="option-text-textarea"
                 />
                 <button
                   type="button"
@@ -289,7 +332,6 @@ export default function SurveyCreatorPage() {
                 >
                   Add Option
                 </button>
-
                 <ul>
                   {currentQuestion.options.map((opt, i) => (
                     <li key={i}>
@@ -306,7 +348,6 @@ export default function SurveyCreatorPage() {
                 </ul>
               </div>
             )}
-
             <button
               type="button"
               className="add-question-btn"

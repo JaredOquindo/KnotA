@@ -1,50 +1,50 @@
-// backend/routes/campaignRoutes.js
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import Campaign from '../models/Campaign.js';
 import { fileURLToPath } from 'url';
+import { authMiddleware } from './authRoutes.js'; // Import auth middleware
+import User from '../models/User.js'; // To find institution from logged-in user
 
 const router = express.Router();
-
-// __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Upload folder path
+// Upload folder
 const uploadFolder = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadFolder)) fs.mkdirSync(uploadFolder);
 
-// Multer storage config
+// Multer config
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadFolder);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const filename = file.fieldname + '-' + Date.now() + ext;
-    cb(null, filename);
-  }
+  destination: (req, file, cb) => cb(null, uploadFolder),
+  filename: (req, file, cb) => cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`)
 });
 
-// Multer upload setup: max 3 images, max 5MB each, only images
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (/image\/(jpeg|png|gif)/.test(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only JPEG, PNG, GIF images are allowed.'));
-    }
+    if (/image\/(jpeg|png|gif)/.test(file.mimetype)) cb(null, true);
+    else cb(new Error('Only JPEG, PNG, GIF images are allowed.'));
   }
 });
 
-// CREATE new campaign with image upload
-router.post('/', upload.array('pictures', 3), async (req, res) => {
+// CREATE new campaign
+router.post('/', authMiddleware, upload.array('pictures', 3), async (req, res) => {
   try {
+    const user = await User.findById(req.userId);
+    if (!user || !user.institution) {
+      return res.status(403).json({ message: 'User is not associated with an institution' });
+    }
+
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     const imageUrls = req.files.map(file => `${baseUrl}/uploads/${file.filename}`);
+
+    let keyTerms = [];
+    if (req.body.keyTerms) {
+      try { keyTerms = JSON.parse(req.body.keyTerms); } catch {}
+    }
 
     const campaignData = {
       title: req.body.title,
@@ -56,12 +56,12 @@ router.post('/', upload.array('pictures', 3), async (req, res) => {
       contactPhone: req.body.contactPhone,
       pictures: imageUrls,
       isClosed: req.body.isClosed === 'true' || req.body.isClosed === true || false,
-      keyTerms: req.body.keyTerms ? JSON.parse(req.body.keyTerms) : [], // ✅ Added
+      keyTerms,
+      institution: user.institution // link to logged-in user’s institution
     };
 
     const campaign = new Campaign(campaignData);
     const savedCampaign = await campaign.save();
-
     res.status(201).json(savedCampaign);
   } catch (err) {
     console.error('Error creating campaign:', err);
@@ -69,29 +69,31 @@ router.post('/', upload.array('pictures', 3), async (req, res) => {
   }
 });
 
-// GET campaigns with filter, search, pagination
-router.get('/', async (req, res) => {
+// GET campaigns filtered by institution
+router.get('/', authMiddleware, async (req, res) => {
   try {
+    const user = await User.findById(req.userId).populate('institution');
+    if (!user || !user.institution) {
+      return res.status(403).json({ message: 'User is not associated with an institution' });
+    }
+    const institutionId = user.institution._id;
+
     const { isClosed, search, page = 1, limit = 10 } = req.query;
-    const query = {};
+    const query = { institution: institutionId };
 
     if (isClosed === 'true') query.isClosed = true;
     else if (isClosed === 'false') query.isClosed = false;
 
-    if (search) {
-      query.title = { $regex: search, $options: 'i' };
-    }
+    if (search) query.title = { $regex: search, $options: 'i' };
 
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.min(parseInt(limit, 10) || 10, 50);
+    const pageNum = Math.max(1, parseInt(page, 10));
+    const limitNum = Math.min(parseInt(limit, 10), 50);
 
     const totalCount = await Campaign.countDocuments(query);
-
     const campaigns = await Campaign.find(query)
       .sort({ startDate: -1 })
       .skip((pageNum - 1) * limitNum)
-      .limit(limitNum)
-      .exec();
+      .limit(limitNum);
 
     res.json({ campaigns, totalCount });
   } catch (err) {
@@ -101,10 +103,16 @@ router.get('/', async (req, res) => {
 });
 
 // GET single campaign by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
   try {
-    const campaign = await Campaign.findById(req.params.id);
-    if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
+    const user = await User.findById(req.userId);
+    if (!user || !user.institution) {
+      return res.status(403).json({ message: 'User is not associated with an institution' });
+    }
+
+    const campaign = await Campaign.findOne({ _id: req.params.id, institution: user.institution });
+    if (!campaign) return res.status(404).json({ message: 'Campaign not found or not accessible' });
+
     res.json(campaign);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -112,9 +120,14 @@ router.get('/:id', async (req, res) => {
 });
 
 // PATCH close campaign
-router.patch('/:id/close', async (req, res) => {
+router.patch('/:id/close', authMiddleware, async (req, res) => {
   try {
-    const campaign = await Campaign.findById(req.params.id);
+    const user = await User.findById(req.userId);
+    if (!user || !user.institution) {
+      return res.status(403).json({ message: 'User is not associated with an institution' });
+    }
+
+    const campaign = await Campaign.findOne({ _id: req.params.id, institution: user.institution });
     if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
 
     campaign.isClosed = true;
@@ -126,12 +139,17 @@ router.patch('/:id/close', async (req, res) => {
 });
 
 // DELETE campaign
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const campaign = await Campaign.findByIdAndDelete(req.params.id);
+    const user = await User.findById(req.userId);
+    if (!user || !user.institution) {
+      return res.status(403).json({ message: 'User is not associated with an institution' });
+    }
+
+    const campaign = await Campaign.findOneAndDelete({ _id: req.params.id, institution: user.institution });
     if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
 
-    if (campaign.pictures && campaign.pictures.length > 0) {
+    if (campaign.pictures?.length) {
       campaign.pictures.forEach(url => {
         const filename = url.split('/uploads/')[1];
         if (filename) {
@@ -148,21 +166,25 @@ router.delete('/:id', async (req, res) => {
 });
 
 // UPDATE campaign
-router.put('/:id', upload.array('pictures', 3), async (req, res) => {
+router.put('/:id', authMiddleware, upload.array('pictures', 3), async (req, res) => {
   try {
+    const user = await User.findById(req.userId);
+    if (!user || !user.institution) {
+      return res.status(403).json({ message: 'User is not associated with an institution' });
+    }
+
     const updateData = {
       ...req.body,
-      keyTerms: req.body.keyTerms ? JSON.parse(req.body.keyTerms) : [],
+      keyTerms: req.body.keyTerms ? JSON.parse(req.body.keyTerms) : []
     };
 
-    // If new images uploaded, replace them
-    if (req.files && req.files.length > 0) {
+    if (req.files?.length) {
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       updateData.pictures = req.files.map(file => `${baseUrl}/uploads/${file.filename}`);
     }
 
-    const updatedCampaign = await Campaign.findByIdAndUpdate(
-      req.params.id,
+    const updatedCampaign = await Campaign.findOneAndUpdate(
+      { _id: req.params.id, institution: user.institution },
       updateData,
       { new: true, runValidators: true }
     );
@@ -170,6 +192,33 @@ router.put('/:id', upload.array('pictures', 3), async (req, res) => {
     if (!updatedCampaign) return res.status(404).json({ message: 'Campaign not found' });
     res.json(updatedCampaign);
   } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// POST donation to a campaign
+router.post('/:id/donations', async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) return res.status(404).json({ message: 'Campaign not found' });
+
+    const { name, email, amount, company, receiveUpdates, timestamp } = req.body;
+
+    const newDonation = {
+      name,
+      email,
+      amount: Number(amount),
+      company,
+      receiveUpdates,
+      donatedAt: timestamp
+    };
+
+    campaign.donations.push(newDonation);
+    await campaign.save();
+
+    res.status(201).json(campaign);
+  } catch (err) {
+    console.error('Error saving donation:', err);
     res.status(400).json({ message: err.message });
   }
 });

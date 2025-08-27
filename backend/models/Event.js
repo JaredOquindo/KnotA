@@ -16,7 +16,8 @@ const eventSchema = new mongoose.Schema({
   },
   keyTerms: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
-  isClosed: { type: Boolean, default: false }
+  isClosed: { type: Boolean, default: false },
+  institution: { type: mongoose.Schema.Types.ObjectId, ref: 'Institution', required: true } // <-- institution
 });
 
 export default mongoose.model('Event', eventSchema);
